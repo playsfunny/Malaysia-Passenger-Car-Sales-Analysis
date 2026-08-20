@@ -1,0 +1,7 @@
+# This repo ships ONLY the self-contained deployed tool + docs.
+# Ignore everything by default, then re-include the deploy artifacts.
+*
+!.gitignore
+!/index.html
+!/README.md
+!/.nojekyll
