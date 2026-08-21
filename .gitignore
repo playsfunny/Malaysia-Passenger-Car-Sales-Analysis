@@ -6,5 +6,7 @@
 !/tool.html
 !/sitemap.xml
 !/robots.txt
+!/posts/
+!/posts/*.html
 !/README.md
 !/.nojekyll
