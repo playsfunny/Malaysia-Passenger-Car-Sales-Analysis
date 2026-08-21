@@ -3,5 +3,8 @@
 *
 !.gitignore
 !/index.html
+!/tool.html
+!/sitemap.xml
+!/robots.txt
 !/README.md
 !/.nojekyll
