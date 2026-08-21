@@ -1381,6 +1381,26 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
 </style>
 </head>
 <body>
+<style>
+.site-nav{background:#0d2a26;color:#fff;position:sticky;top:0;z-index:9999;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif}
+.site-nav .in{max-width:1200px;margin:0 auto;padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:44px}
+.site-nav a{text-decoration:none}
+.site-nav .nb{display:flex;align-items:center;font-weight:700;font-size:14px;color:#fff}
+.site-nav .nb .d{width:9px;height:9px;border-radius:3px;background:#3ec9c0;display:inline-block;margin-right:8px}
+.site-nav .nl{display:flex;gap:4px}
+.site-nav .nl a{color:rgba(255,255,255,.82);font-size:14px;padding:6px 14px;border-radius:7px;font-weight:500}
+.site-nav .nl a:hover{color:#fff;background:rgba(255,255,255,.12)}
+.site-nav .nl a.on{color:#fff;background:rgba(62,201,192,.22);font-weight:700}
+@media(max-width:560px){.site-nav .nb .tt{display:none}}
+</style>
+<nav class="site-nav"><div class="in">
+  <a class="nb" href="/"><span class="d"></span><span class="tt">马来西亚乘用车销量分析</span></a>
+  <div class="nl">
+    <a href="/">首页</a>
+    <a href="/tool" class="on">工具</a>
+    <a href="/news">新闻</a>
+  </div>
+</div></nav>
 <div class="wrap">
 <header style="display:flex;justify-content:space-between;align-items:center">
   <div>
@@ -4245,6 +4265,31 @@ function buildDerived() {
   MODEL_LENGTH = DATA.model_length || []; // model_i -> length in mm or null
   MODEL_TYPE = new Array(DICT.model.length).fill(-1);
   for (const [, mdi, ti] of CUBE_MD) if (MODEL_TYPE[mdi] < 0) MODEL_TYPE[mdi] = ti;
+  // V276: VAN 并入 MPV —— 全局口径统一（数据 + 顶部筛选 + 所有页面），幂等（VAN 移除后跳过）
+  {
+    const _vi = DICT.type.indexOf('VAN');
+    if (_vi >= 0) {
+      const _mi = DICT.type.indexOf('MPV');
+      if (_mi >= 0 && _mi !== _vi) {
+        for (const r of CUBE) if (r[2] === _vi) r[2] = _mi;
+        for (const r of CUBE_M) if (r[1] === _vi) r[1] = _mi;
+        for (const r of CUBE_MD) if (r[2] === _vi) r[2] = _mi;
+        for (let i = 0; i < MODEL_TYPE.length; i++) if (MODEL_TYPE[i] === _vi) MODEL_TYPE[i] = _mi;
+        if (byCat.type) for (const [, mp] of byCat.type) {
+          const _van = mp.get('VAN'); if (_van) { mp.set('MPV', (mp.get('MPV') || 0) + _van); mp.delete('VAN'); }
+        }
+        DICT.type.splice(_vi, 1); // VAN 恒为末位，其余索引不变
+      }
+    }
+  }
+  // V277: 跨界车型按 MAA 口径重分类（JPJ 类型偏差；幂等，名称匹配）
+  {
+    const REC = {'e.MAS 5':'SUV','Yaris Cross':'SUV','Corolla Cross':'SUV','HR-V':'SUV','Harrier':'SUV','RX':'SUV','WR-V':'SUV','Veloz':'MPV'};
+    const tgt = {};
+    for (const nm in REC) tgt[nm] = DICT.type.indexOf(REC[nm]);
+    for (let i = 0; i < MODEL_TYPE.length; i++) if (tgt[DICT.model[i]] !== undefined) MODEL_TYPE[i] = tgt[DICT.model[i]];
+    for (const r of CUBE_MD) { const t = tgt[DICT.model[r[1]]]; if (t !== undefined) r[2] = t; }
+  }
   NATL_MAKERS.clear();
   for (let i=0;i<DICT.maker.length;i++){ const nm=DICT.maker[i]; if (nm==='Proton'||nm==='Perodua') NATL_MAKERS.add(i); }
   years = [...new Set([...allYms].map(ym => Math.floor(ym/100)))].sort();
@@ -6035,12 +6080,12 @@ function renderDash(){
   const tipSet = (id, txt) => { const el=document.getElementById(id); if(el) el.setAttribute('data-tip', txt); };
   const _u = LANG==='en' ? '' : '辆';
   const _mu = LANG==='en' ? '' : '款';
-  tipSet('kpi-total-tip', _BI(`小字为乘用车三类份额；其余类别：PICKUP ${fpv('PICKUP')}${_u}(${fpc('PICKUP')})、VAN ${fpv('VAN')}${_u}(${fpc('VAN')})`, `Small text = 3 passenger-car class share; other categories: PICKUP ${fpv('PICKUP')} (${fpc('PICKUP')}), VAN ${fpv('VAN')} (${fpc('VAN')})`));
-  tipSet('kpi-avg-tip', _BI(`小字为乘用车三类月均销量；其余类别月均：PICKUP ${fmt(Math.round((fcur['PICKUP']||0)/Math.max(ms.length,1)))}${_u}、VAN ${fmt(Math.round((fcur['VAN']||0)/Math.max(ms.length,1)))}${_u}`, `Small text = 3 passenger-car class monthly avg; other categories avg: PICKUP ${fmt(Math.round((fcur['PICKUP']||0)/Math.max(ms.length,1)))}, VAN ${fmt(Math.round((fcur['VAN']||0)/Math.max(ms.length,1)))}`));
+  tipSet('kpi-total-tip', _BI(`小字为乘用车三类份额；其余类别：PICKUP ${fpv('PICKUP')}${_u}(${fpc('PICKUP')})（VAN 已并入 MPV）`, `Small text = 3 passenger-car class share; other categories: PICKUP ${fpv('PICKUP')} (${fpc('PICKUP')}) (VAN merged into MPV)`));
+  tipSet('kpi-avg-tip', _BI(`小字为乘用车三类月均销量；其余类别月均：PICKUP ${fmt(Math.round((fcur['PICKUP']||0)/Math.max(ms.length,1)))}${_u}（VAN 已并入 MPV）`, `Small text = 3 passenger-car class monthly avg; other categories avg: PICKUP ${fmt(Math.round((fcur['PICKUP']||0)/Math.max(ms.length,1)))} (VAN merged into MPV)`));
   tipSet('kpi-makers-tip', _BI(`厂家按国别分类：非国民=除马来西亚外全部厂家（${makersByCtry.非国民.size}家）；其中中国 ${makersByCtry.中国.size}家、日本 ${makersByCtry.日本.size}家`, `Makers by country: Non-National = all makers except Malaysia (${makersByCtry.非国民.size}); China ${makersByCtry.中国.size}, Japan ${makersByCtry.日本.size}`));
-  tipSet('kpi-models-tip', _BI(`小字为乘用车三类车型数；其余类别：PICKUP ${(modelByType['PICKUP']?modelByType['PICKUP'].size:modelByTypeApprox['PICKUP'])||0}${_mu}、VAN ${(modelByType['VAN']?modelByType['VAN'].size:modelByTypeApprox['VAN'])||0}${_mu}`, `Small text = 3 passenger-car class model count; other categories: PICKUP ${(modelByType['PICKUP']?modelByType['PICKUP'].size:modelByTypeApprox['PICKUP'])||0}, VAN ${(modelByType['VAN']?modelByType['VAN'].size:modelByTypeApprox['VAN'])||0}`));
-  tipSet('kpi-yoy-diff-tip', _BI(`小字为乘用车三类同比变化；其余类别：PICKUP ${fdy('PICKUP')}${_u}、VAN ${fdy('VAN')}${_u}`, `Small text = 3 passenger-car class YoY diff; other categories: PICKUP ${fdy('PICKUP')}, VAN ${fdy('VAN')}`));
-  tipSet('kpi-yoy-pct-tip', _BI(`小字为乘用车三类同比%；其余类别：PICKUP ${fdp('PICKUP')}、VAN ${fdp('VAN')}`, `Small text = 3 passenger-car class YoY%; other categories: PICKUP ${fdp('PICKUP')}, VAN ${fdp('VAN')}`));
+  tipSet('kpi-models-tip', _BI(`小字为乘用车三类车型数；其余类别：PICKUP ${(modelByType['PICKUP']?modelByType['PICKUP'].size:modelByTypeApprox['PICKUP'])||0}${_mu}（VAN 已并入 MPV）`, `Small text = 3 passenger-car class model count; other categories: PICKUP ${(modelByType['PICKUP']?modelByType['PICKUP'].size:modelByTypeApprox['PICKUP'])||0} (VAN merged into MPV)`));
+  tipSet('kpi-yoy-diff-tip', _BI(`小字为乘用车三类同比变化；其余类别：PICKUP ${fdy('PICKUP')}${_u}（VAN 已并入 MPV）`, `Small text = 3 passenger-car class YoY diff; other categories: PICKUP ${fdy('PICKUP')} (VAN merged into MPV)`));
+  tipSet('kpi-yoy-pct-tip', _BI(`小字为乘用车三类同比%；其余类别：PICKUP ${fdp('PICKUP')}（VAN 已并入 MPV）`, `Small text = 3 passenger-car class YoY%; other categories: PICKUP ${fdp('PICKUP')} (VAN merged into MPV)`));
 
   // maker bar top15 (with value data labels)
   const mk = sortedAcc(mAcc);
@@ -8812,8 +8857,8 @@ function renderMaa(){
   const maaTpc = tn => total>0 ? ((byType.get(tn)||0)/total*100).toFixed(1)+'%' : '-';
   const _u = LANG==='en' ? '' : '辆';
   const _mu = LANG==='en' ? '' : '款';
-  maaTip('maa-kpi-total-tip', _BI(`小字为乘用车三类份额；其余类别：PICKUP ${maaTpv('PICKUP')}${_u}(${maaTpc('PICKUP')})、VAN ${maaTpv('VAN')}${_u}(${maaTpc('VAN')})`, `Small text = 3 passenger-car class share; other categories: PICKUP ${maaTpv('PICKUP')} (${maaTpc('PICKUP')}), VAN ${maaTpv('VAN')} (${maaTpc('VAN')})`));
-  maaTip('maa-kpi-trim-tip', _BI(`小字为乘用车三类版型数；其余类别：PICKUP ${trimTypeSet.get('PICKUP')?trimTypeSet.get('PICKUP').size:0}${_mu}、VAN ${trimTypeSet.get('VAN')?trimTypeSet.get('VAN').size:0}${_mu}`, `Small text = 3 passenger-car class trim count; other categories: PICKUP ${trimTypeSet.get('PICKUP')?trimTypeSet.get('PICKUP').size:0}, VAN ${trimTypeSet.get('VAN')?trimTypeSet.get('VAN').size:0}`));
+  maaTip('maa-kpi-total-tip', _BI(`小字为乘用车三类份额；其余类别：PICKUP ${maaTpv('PICKUP')}${_u}(${maaTpc('PICKUP')})（VAN 已并入 MPV）`, `Small text = 3 passenger-car class share; other categories: PICKUP ${maaTpv('PICKUP')} (${maaTpc('PICKUP')}) (VAN merged into MPV)`));
+  maaTip('maa-kpi-trim-tip', _BI(`小字为乘用车三类版型数；其余类别：PICKUP ${trimTypeSet.get('PICKUP')?trimTypeSet.get('PICKUP').size:0}${_mu}（VAN 已并入 MPV）`, `Small text = 3 passenger-car class trim count; other categories: PICKUP ${trimTypeSet.get('PICKUP')?trimTypeSet.get('PICKUP').size:0} (VAN merged into MPV)`));
   maaTip('maa-kpi-brands-tip', _BI(`品牌按国别分类：非国民=除马来西亚外全部品牌（${brandsByCtry.非国民.size}家）；其中中国 ${brandsByCtry.中国.size}家、日本 ${brandsByCtry.日本.size}家`, `Brands by country: Non-National = all brands except Malaysia (${brandsByCtry.非国民.size}); China ${brandsByCtry.中国.size}, Japan ${brandsByCtry.日本.size}`));
 
   // region combo: bars = sales (desc), line = share % (right axis)

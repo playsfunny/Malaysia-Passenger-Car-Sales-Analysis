@@ -117,12 +117,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans G
 a{color:var(--brand);text-decoration:none}
 .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
 /* header */
-header{position:sticky;top:0;z-index:10;background:rgba(247,250,249,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.site-nav{position:sticky;top:0;z-index:10;background:rgba(13,42,38,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);color:#fff}
 .nav{display:flex;align-items:center;justify-content:space-between;height:60px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:var(--ink)}
-.brand .dot{width:10px;height:10px;border-radius:3px;background:var(--brand);display:inline-block}
-.nav a.btn{border:1px solid var(--brand);color:var(--brand);padding:7px 16px;border-radius:8px;font-size:14px;font-weight:600;transition:all .15s}
-.nav a.btn:hover{background:var(--brand);color:#fff}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:#fff}
+.brand .dot{width:10px;height:10px;border-radius:3px;background:#3ec9c0;display:inline-block}
+.links{display:flex;gap:4px}
+.links a{color:rgba(255,255,255,.82);font-size:14px;padding:6px 16px;border-radius:8px;font-weight:500;text-decoration:none}
+.links a:hover{color:#fff;background:rgba(255,255,255,.12)}
+.links a.on{color:#fff;background:rgba(62,201,192,.24);font-weight:700}
+@media(max-width:520px){.links a{padding:6px 10px;font-size:13px}}
 /* hero */
 .hero{padding:72px 0 56px;text-align:center}
 .hero .tag{display:inline-block;font-size:13px;color:var(--brand);background:#e6f2f1;border:1px solid #c9e3e1;padding:4px 14px;border-radius:999px;font-weight:600;letter-spacing:.4px}
@@ -211,10 +214,14 @@ footer .col{max-width:300px}
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
+<header class="site-nav">
+  <div class="wrap nav" style="max-width:1080px;height:52px">
     <div class="brand"><span class="dot"></span>马来西亚乘用车销量分析</div>
-    <a class="btn" href="/tool">打开工具 →</a>
+    <nav class="links">
+      <a href="/" class="on">首页</a>
+      <a href="/tool">工具</a>
+      <a href="/news">新闻</a>
+    </nav>
   </div>
 </header>
 
@@ -295,7 +302,7 @@ footer .col{max-width:300px}
       <div class="post-tag">2026年7月 · 最新</div>
       <h3>马来西亚乘用车销量分析：2026年7月（销量 80,030 辆，同比 +5.8%）</h3>
       <p>7 月注册量创年内单月新高；Perodua / Proton 双雄合计份额约 61%；BEV 纯电份额升至 8.7%，电动化车型合计 15.8%，一年内翻倍。Jetour（+682%）、Proton（+38.7%）领跑增长。</p>
-      <a class="post-more" href="/posts/2026-07">阅读全文 →</a>
+      <a class="post-more" href="posts/2026-07.html">阅读全文 →</a>
     </div>
   </div>
 </section>
