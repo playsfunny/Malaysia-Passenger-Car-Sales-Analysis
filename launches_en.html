@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Car Launches · Malaysia Passenger Cars Jan–Aug 2026 | playsfunny.com</title>
+<meta name="description" content="Malaysia passenger car launches 2026: GWM Wey G9, Toyota Yaris Cross, BYD Atto 3, Chery Tiggo 9 and 61 more, each card linking to the original paultan.org report.">
+<meta name="keywords" content="Malaysia new car,car launches,2026,passenger car,price">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://playsfunny.com/launches_en">
+<meta property="og:type" content="website">
+<meta property="og:title" content="New Car Launches · Malaysia Passenger Cars Jan–Aug 2026">
+<meta property="og:description" content="61 passenger cars launched / priced in Malaysia in 2026, linking to original paultan.org reports.">
+<meta property="og:url" content="https://playsfunny.com/launches_en">
+<style>
+:root{
+    --asphalt:#16181b;
+    --asphalt-2:#1e2124;
+    --panel:#212429;
+    --line:#33373d;
+    --paper:#e9e6df;
+    --paper-dim:#9ba0a6;
+    --amber:#ffb020;
+    --amber-dim:#8a6520;
+    --brake:#e14b3d;
+    --teal:#3f9a8d;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--asphalt);color:var(--paper);font-family:'Inter',sans-serif;}
+  body{
+    background-image:
+      radial-gradient(ellipse at top left, rgba(255,176,32,0.05), transparent 45%),
+      repeating-linear-gradient(180deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  }
+
+  /* ===== Header : dashboard ===== */
+  header{
+    padding:56px 6vw 40px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+    overflow:hidden;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    letter-spacing:.25em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin:0 0 18px;
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:clamp(34px,6vw,64px);
+    line-height:1.02;
+    letter-spacing:-0.01em;
+    margin:0 0 18px;
+    text-transform:uppercase;
+  }
+  h1 span{color:var(--amber);}
+  .lede{
+    max-width:640px;
+    color:var(--paper-dim);
+    font-size:15.5px;
+    line-height:1.65;
+    margin:0 0 30px;
+  }
+  .lede a{color:var(--paper);}
+  .dash-strip{
+    display:flex;
+    gap:0;
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+    max-width:720px;
+  }
+  .dash-cell{
+    flex:1;
+    padding:14px 18px;
+    border-right:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .dash-cell:last-child{border-right:none;}
+  .dash-cell .num{font-size:26px;font-weight:700;color:var(--paper);}
+  .dash-cell .lbl{font-size:10.5px;letter-spacing:.12em;color:var(--paper-dim);text-transform:uppercase;margin-top:4px;}
+
+  /* ===== Odometer month nav ===== */
+  nav.odometer{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:22px 6vw;
+    background:var(--asphalt-2);
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    z-index:10;
+    backdrop-filter:blur(6px);
+  }
+  nav.odometer a{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    color:var(--paper-dim);
+    text-decoration:none;
+    background:var(--panel);
+    border:1px solid var(--line);
+    padding:7px 12px;
+    border-radius:4px;
+    transition:all .15s ease;
+    white-space:nowrap;
+  }
+  nav.odometer a:hover{color:var(--asphalt);background:var(--amber);border-color:var(--amber);}
+
+  main{padding:10px 6vw 80px;}
+
+  .month-section{margin-top:52px;}
+  .month-head{
+    display:flex;
+    align-items:baseline;
+    gap:16px;
+    margin-bottom:6px;
+    padding-bottom:14px;
+    border-bottom:2px solid var(--line);
+  }
+  .month-odo{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:15px;
+    color:var(--asphalt);
+    background:var(--amber);
+    padding:5px 10px;
+    border-radius:3px;
+    letter-spacing:.05em;
+  }
+  .month-title{
+    font-family:'Oswald',sans-serif;
+    font-size:26px;
+    text-transform:uppercase;
+    letter-spacing:.02em;
+    font-weight:600;
+  }
+  .month-count{
+    margin-left:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--paper-dim);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:14px;
+    margin-top:22px;
+  }
+
+  .card{
+    display:block;
+    text-decoration:none;
+    color:inherit;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-left:3px solid var(--line);
+    border-radius:6px;
+    padding:18px 18px 16px;
+    transition:border-color .15s ease, transform .15s ease, background .15s ease;
+    position:relative;
+  }
+  .card:hover{
+    border-left-color:var(--amber);
+    background:#25282e;
+    transform:translateX(2px);
+  }
+  .card .date-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    color:var(--teal);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    margin-bottom:8px;
+    display:inline-block;
+  }
+  .card .badge{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    letter-spacing:.05em;
+    color:var(--brake);
+    border:1px solid var(--brake);
+    border-radius:3px;
+    padding:1px 6px;
+    margin-left:8px;
+    text-transform:uppercase;
+    vertical-align:middle;
+  }
+  .card h3{
+    font-family:'Oswald',sans-serif;
+    font-size:19px;
+    font-weight:500;
+    line-height:1.28;
+    margin:0 0 8px;
+    color:var(--paper);
+  }
+  .card p{
+    font-size:13px;
+    line-height:1.55;
+    color:var(--paper-dim);
+    margin:0 0 12px;
+  }
+  .card .price{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    font-weight:700;
+    color:var(--amber);
+  }
+  .card .go{
+    position:absolute;
+    right:16px;
+    bottom:16px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--paper-dim);
+    opacity:0;
+    transform:translateX(-4px);
+    transition:all .15s ease;
+  }
+  .card:hover .go{opacity:1;transform:translateX(0);color:var(--amber);}
+
+  footer{
+    padding:34px 6vw 50px;
+    border-top:1px solid var(--line);
+    color:var(--paper-dim);
+    font-size:12.5px;
+    line-height:1.7;
+  }
+  footer a{color:var(--teal);}
+
+  @media (max-width:600px){
+    .dash-strip{flex-wrap:wrap;}
+    .dash-cell{flex:1 1 45%;border-bottom:1px solid var(--line);}
+    nav.odometer{position:static;}
+  }
+
+.site-nav{position:sticky;top:0;z-index:100;background:#0d2a26;border-bottom:1px solid #33373d}
+.nav{display:flex;align-items:center;justify-content:space-between;height:56px;max-width:1200px;margin:0 auto;padding:0 24px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:#e9e6df;font-family:'Inter',sans-serif}
+.brand .dot{width:10px;height:10px;border-radius:3px;background:#ffb020;display:inline-block}
+.links{display:flex;gap:4px;align-items:center}
+.links a{color:rgba(233,230,223,.82);font-size:14px;padding:6px 16px;border-radius:8px;font-weight:500;text-decoration:none;font-family:'Inter',sans-serif}
+.links a:hover{color:#fff;background:rgba(255,255,255,.12)}
+.links a.on{color:#fff;background:rgba(255,176,32,.24);font-weight:700}
+.lang-switch{display:flex;align-items:center;gap:2px;margin-left:10px;padding-left:10px;border-left:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:600;white-space:nowrap;font-family:'Inter',sans-serif}
+.lang-switch a{color:rgba(233,230,223,.6);padding:3px 7px;border-radius:6px;font-size:13px}
+.lang-switch a.on{color:#fff;background:rgba(255,176,32,.24)}
+.lang-switch a:hover{color:#fff}
+.lang-switch .sep{color:rgba(255,255,255,.25);font-style:normal}
+@media(max-width:640px){.nav{flex-wrap:wrap;height:auto;padding:10px 14px;gap:8px}.links a{padding:6px 10px;font-size:13px}.brand{font-size:14px}}
+
+</style>
+</head>
+<body>
+
+<header class="site-nav">
+  <div class="nav">
+    <div class="brand"><span class="dot"></span>Malaysia Car Sales Analysis</div>
+    <nav class="links">
+      <a href="/">Home</a>
+      <a href="/tool">Tool</a>
+      <a href="/news">News</a>
+      <a href="/launches_en" class="on">New Launches</a>
+      <span class="lang-switch"><a href="/launches" onclick="localStorage.setItem('wb_lang','zh')">中文</a><i class="sep">|</i><a href="/launches_en" class="on" onclick="localStorage.setItem('wb_lang','en')">EN</a></span></nav>
+  </div>
+</header>
+
+<header>
+  <p class="eyebrow">// PAULTAN.ORG · LOCAL CAR LAUNCHES ARCHIVE</p>
+  <h1>MY CAR<span>ARCHIVE</span></h1>
+  <p class="lede">
+    A collection of passenger cars officially launched / priced in Malaysia between January and August 2026 — 61 models in total. Every card links to the original  <a href="https://paultan.org/" target="_blank" rel="noopener">paultan.org</a> report, where you can view full specifications and photos. Data also references its 
+    <a href="https://paultan.org/research/" target="_blank" rel="noopener">Car Research</a>。
+  </p>
+  <div class="dash-strip">
+    <div class="dash-cell"><div class="num">61</div><div class="lbl">Total models</div></div>
+    <div class="dash-cell"><div class="num">8</div><div class="lbl">Months covered</div></div>
+    <div class="dash-cell"><div class="num">01–08</div><div class="lbl">2026 · Jan–Aug</div></div>
+    <div class="dash-cell"><div class="num">●LIVE</div><div class="lbl">As of 08/22</div></div>
+  </div>
+</header>
+
+<nav class="odometer">
+  <a href="#m01">2026.01</a>
+  <a href="#m02">2026.02</a>
+  <a href="#m03">2026.03</a>
+  <a href="#m04">2026.04</a>
+  <a href="#m05">2026.05</a>
+  <a href="#m06">2026.06</a>
+  <a href="#m07">2026.07</a>
+  <a href="#m08">2026.08</a>
+</nav>
+
+<main>
+
+  <!-- JANUARY -->
+  <section class="month-section" id="m01">
+    <div class="month-head">
+      <span class="month-odo">2026 · 01</span>
+      <span class="month-title">January</span>
+      <span class="month-count">3 models</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://paultan.org/2026/01/29/gwm-wey-g9-mpv-launched-in-malaysia-7-seater-1-5t-hi4-phev-with-442-ps-642-nm-ckd-rm269800/" target="_blank" rel="noopener">
+        <span class="date-tag">01/29</span>
+        <h3>GWM Wey G9 MPV</h3>
+        <p>CKD locally assembled, 7-seat PHEV MPV, 1.5T Hi4 system, 442PS/642Nm combined.</p>
+        <span class="price">RM269,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/01/30/alfa-romeo-giulia-stelvio-official-malaysian-prices-out-rm438800-and-rm478800-for-2-0t-veloce/" target="_blank" rel="noopener">
+        <span class="date-tag">01/30</span>
+        <h3>Alfa Romeo Giulia / Stelvio</h3>
+        <p>First official pricing since the brand re-entered Malaysia, both in 2.0T Veloce spec.</p>
+        <span class="price">RM438,800 / RM478,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/04/30/2026-bmw-ix1-l-official-malaysian-pricing-out-204-ps-edrive20l-433-km-wltp-range-cbu-china-rm253k/" target="_blank" rel="noopener">
+        <span class="date-tag">Launched 01/ · Priced 04/30</span>
+        <h3>BMW iX1 L <span class="badge">Long wheelbase</span></h3>
+        <p>First "launched" in January, official pricing came later in April; 204PS, 433km WLTP range.</p>
+        <span class="price">RM253,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- FEBRUARY -->
+  <section class="month-section" id="m02">
+    <div class="month-head">
+      <span class="month-odo">2026 · 02</span>
+      <span class="month-title">February</span>
+      <span class="month-count">8 models</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://paultan.org/2026/02/04/proton-emas-7-phev-launched-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">02/04</span>
+        <h3>Proton eMas 7 PHEV</h3>
+        <p>Malaysia's most affordable PHEV, with up to 996km WLTP total range.</p>
+        <span class="price">RM106k–126k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/02/05/dongfeng-007-launched-in-malaysia-rwd-and-awd-up-to-544-ps-650-km-cltc-range-rm161k-to-rm187k/" target="_blank" rel="noopener">
+        <span class="date-tag">02/05</span>
+        <h3>Dongfeng 007</h3>
+        <p>Five-door BEV sedan, RWD/AWD options, up to 544PS, 650km CLTC range.</p>
+        <span class="price">RM161k–187k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/02/05/dongfeng-vigo-ev-launched-in-malaysia-atto-2-rival-with-51-87-kwh-battery-471-km-cltc-rm100k-otr/" target="_blank" rel="noopener">
+        <span class="date-tag">02/05</span>
+        <h3>Dongfeng Vigo EV</h3>
+        <p>Rivals the BYD Atto 2, 51.87kWh battery, 471km CLTC range.</p>
+        <span class="price">RM108,888</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/02/06/volkswagen-golf-mk8-5-1-5-etsi-r-line-now-in-malaysia-rm185990-first-50-early-birds-get-rm6k-off/" target="_blank" rel="noopener">
+        <span class="date-tag">02/06</span>
+        <h3>VW Golf Mk8.5 1.5 eTSI R-Line</h3>
+        <p>First 50 bookings get a RM6,000 early-bird discount.</p>
+        <span class="price">RM185,990</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/02/09/2026-toyota-corolla-cross-hev-gr-sport-new-grille-extra-gr-logos-sportier-cabin-same-rm149k-price/" target="_blank" rel="noopener">
+        <span class="date-tag">02/09</span>
+        <h3>Toyota Corolla Cross HEV GR Sport <span class="badge">Facelift</span></h3>
+        <p>New grille and GR badging, sportier cabin tweaks, price unchanged.</p>
+        <span class="price">RM149,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/02/11/2026-proton-s70-mc1-launched-new-1-5t-i-gt-4-cyl-0-100-km-h-7-5-secs-new-bodykit-fr-rm69k-to-rm90k/" target="_blank" rel="noopener">
+        <span class="date-tag">02/11</span>
+        <h3>Proton S70 MC1</h3>
+        <p>New 1.5T i-GT four-cylinder engine, 0-100km/h in 7.5s, new bodykit.</p>
+        <span class="price">RM69k–90k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/02/26/leapmotor-c10-plus-in-malaysia-299-ps-510-km-wltp-180-kw-dcfc-new-night-edition-from-rm139k/" target="_blank" rel="noopener">
+        <span class="date-tag">02/26</span>
+        <h3>Leapmotor C10 Plus</h3>
+        <p>Major mechanical upgrade, 299PS, 510km WLTP range, new Night Edition added.</p>
+        <span class="price">From RM139,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/02/27/2026-peugeot-3008-in-malaysia-still-2nd-gen-but-with-new-logo-and-wheels-no-aeb-rm31k-rebate-rm139k/" target="_blank" rel="noopener">
+        <span class="date-tag">02/27</span>
+        <h3>Peugeot 3008 <span class="badge">Mid-cycle refresh</span></h3>
+        <p>Still second-generation, new logo and wheels, RM31k rebate included.</p>
+        <span class="price">RM139,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- MARCH -->
+  <section class="month-section" id="m03">
+    <div class="month-head">
+      <span class="month-odo">2026 · 03</span>
+      <span class="month-title">March</span>
+      <span class="month-count">16 models</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://paultan.org/2026/03/02/2026-toyota-harrier-2-5-hybrid-launched-in-malaysia-218-ps-combined-12-3-inch-digital-display-fr-rm289k/" target="_blank" rel="noopener">
+        <span class="date-tag">03/02</span>
+        <h3>Toyota Harrier 2.5 Hybrid</h3>
+        <p>XU80-generation model, 218PS combined, 12.3-inch digital display, 5-year unlimited-mileage warranty.</p>
+        <span class="price">From RM289,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/03/2026-nissan-serena-e-power-launched-in-malaysia-1-4l-petrol-163-ps-315-nm-motor-5-variants-fr-rm155k/" target="_blank" rel="noopener">
+        <span class="date-tag">03/03</span>
+        <h3>Nissan Serena e-Power</h3>
+        <p>Sixth-generation model launched, 1.4L range-extender, 163PS/315Nm, five variants.</p>
+        <span class="price">From RM155,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/03/2026-honda-cr-v-in-malaysia-update-introduces-new-ehev-e-hybrid-variant-additional-kit-from-rm178k/" target="_blank" rel="noopener">
+        <span class="date-tag">03/03</span>
+        <h3>Honda CR-V e:HEV E <span class="badge">Mid-cycle refresh</span></h3>
+        <p>New e:HEV hybrid variant, built-in Google services, BLIS/RCTA.</p>
+        <span class="price">From RM178,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/03/2026-mercedes-benz-gla200-gla250-nightfall-edition-in-malaysia-both-amg-line-kit-upgrades-fr-rm259k/" target="_blank" rel="noopener">
+        <span class="date-tag">03/03</span>
+        <h3>Mercedes-Benz GLA200 / GLA250 Nightfall</h3>
+        <p>Both in AMG Line spec, upgraded equipment, awaiting EV successor.</p>
+        <span class="price">From RM259,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/05/jaecoo-j5-launched-in-malaysia-pet-friendly-b-segment-suv-147-ps-1-5t-cvt-rm6k-rebate-rm102k/" target="_blank" rel="noopener">
+        <span class="date-tag">03/05</span>
+        <h3>Jaecoo J5</h3>
+        <p>"Pet-friendly" B-segment SUV, 147PS 1.5T with CVT, RM6k rebate.</p>
+        <span class="price">RM102,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/06/mitsubishi-triton-championship-edition-to-mark-axcr-win-at-premium-athlete-versions-rm156-rm170k/" target="_blank" rel="noopener">
+        <span class="date-tag">03/06</span>
+        <h3>Mitsubishi Triton Championship Edition <span class="badge">Limited edition</span></h3>
+        <p>Commemorates the AXCR rally win, AT Premium/Athlete versions.</p>
+        <span class="price">RM156k–170k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/11/2026-proton-x50-black-edition-quartz-black-limited-to-200-units-flagship-trim-rm7000-raya-rebate/" target="_blank" rel="noopener">
+        <span class="date-tag">03/11</span>
+        <h3>Proton X50 Black Edition <span class="badge">Limited 200 units</span></h3>
+        <p>Quartz Black body, based on Flagship trim, RM7,000 Raya rebate.</p>
+        <span class="price">Flagship base price</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/11/2026-proton-x90-mc-launched-new-1-5t-i-gt-4-cyl-no-48v-mild-hybrid-priced-rm37k-lower-from-rm99800/" target="_blank" rel="noopener">
+        <span class="date-tag">03/11</span>
+        <h3>Proton X90 MC</h3>
+        <p>New 1.5T i-GT four-cylinder, 48V mild-hybrid dropped, entry price cut sharply.</p>
+        <span class="price">From RM99,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/12/ferrari-amalfi-debuts-in-malaysia-640-ps-760-nm-v8-22-coupe-takes-over-from-roma-from-rm1-09m-est/" target="_blank" rel="noopener">
+        <span class="date-tag">03/12</span>
+        <h3>Ferrari Amalfi</h3>
+        <p>V8 2+2 coupé replacing the Roma, 640PS/760Nm, regional debut.</p>
+        <span class="price">~RM1.09m est.</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/13/jetour-t2-launched-in-malaysia-2-0td-xwd-single-spec-boxy-suv-with-254-ps-390-nm-ckd-rm157k/" target="_blank" rel="noopener">
+        <span class="date-tag">03/13</span>
+        <h3>Jetour T2</h3>
+        <p>CKD locally assembled, boxy rugged design, single 2.0TD spec with XWD AWD.</p>
+        <span class="price">RM157,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/16/2026-porsche-macan-petrol-on-sale-in-malaysia-2-0l-turbo-4-cyl-265-ps-400-nm-limited-stock-rm469000/" target="_blank" rel="noopener">
+        <span class="date-tag">03/16</span>
+        <h3>Porsche Macan (petrol) <span class="badge">Limited batch</span></h3>
+        <p>Reintroduced on strong demand, 2.0T four-cylinder, 265PS/400Nm.</p>
+        <span class="price">RM469,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/18/2026-mini-paul-smith-edition-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">03/18</span>
+        <h3>MINI Paul Smith Edition <span class="badge">Limited edition</span></h3>
+        <p>Based on Cooper SE EV, created with British designer Paul Smith.</p>
+        <span class="price">From RM222,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/18/lotus-eletre-600-receives-my27-upgrades-still-rm499k-emeya-600-also-updated-in-malaysia-now-rm489k/" target="_blank" rel="noopener">
+        <span class="date-tag">03/18</span>
+        <h3>Lotus Eletre 600 / Emeya 600 <span class="badge">MY27</span></h3>
+        <p>MY27 upgrade, Eletre price holds, Emeya slightly adjusted.</p>
+        <span class="price">RM499k / RM489k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/18/omoda-c9-phev-launched-in-malaysia-1-5t-petrol-537-ps-650-nm-phev-145-km-ev-range-wltp-rm209k/" target="_blank" rel="noopener">
+        <span class="date-tag">03/18</span>
+        <h3>Omoda C9 PHEV</h3>
+        <p>1.5T PHEV, 537PS/650Nm combined, 145km EV range (WLTP).</p>
+        <span class="price">RM208,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/19/omoda-c9-matte-black-limited-edition-in-malaysia-limited-units-deliveries-have-begun-rm191800/" target="_blank" rel="noopener">
+        <span class="date-tag">03/19</span>
+        <h3>Omoda C9 Matte Black <span class="badge">Limited edition</span></h3>
+        <p>Matte Black special edition, limited deliveries begun.</p>
+        <span class="price">RM191,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/03/31/2026-isuzu-d-max-in-malaysia-2-2l-turbodiesel-8-speed-auto-updated-styling-rm103k-rm163k-otr/" target="_blank" rel="noopener">
+        <span class="date-tag">03/31</span>
+        <h3>Isuzu D-Max <span class="badge">Mid-cycle refresh</span></h3>
+        <p>New 2.2L turbodiesel with 8-speed auto, minor styling update.</p>
+        <span class="price">RM103k–163k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- APRIL -->
+  <section class="month-section" id="m04">
+    <div class="month-head">
+      <span class="month-odo">2026 · 04</span>
+      <span class="month-title">April</span>
+      <span class="month-count">6 models</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://paultan.org/2026/04/01/tesla-model-y-l-launched-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">04/01</span>
+        <h3>Tesla Model Y L</h3>
+        <p>Long-wheelbase six-seater, 681km WLTP range, adaptive suspension.</p>
+        <span class="price">~RM260,000 est.</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/04/16/2026-proton-x70-sport-edition-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">04/16</span>
+        <h3>Proton X70 Sport Edition <span class="badge">Limited edition</span></h3>
+        <p>Based on Premium flagship, RM6k of extras for just RM2.5k more.</p>
+        <span class="price">RM115,300</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/04/17/2026-porsche-cayenne-cayenne-s-e-hybrid-coupe-now-in-malaysia-21-inch-wheels-rm609k-to-rm739k/" target="_blank" rel="noopener">
+        <span class="date-tag">04/17</span>
+        <h3>Porsche Cayenne / Cayenne S E-Hybrid Coupé</h3>
+        <p>Annual upgrade, 21-inch wheels standard (not the new all-electric Cayenne).</p>
+        <span class="price">RM609k–739k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/04/24/mg-s5-ev-ckd-launched-in-malaysia-more-powerful-205-ps-350-nm-motor-62-kwh-445-km-wltp-rm117k/" target="_blank" rel="noopener">
+        <span class="date-tag">04/24</span>
+        <h3>MG S5 EV <span class="badge">CKD</span></h3>
+        <p>Assembled at Pegoh, Melaka; upgraded to 205PS/350Nm, 445km range.</p>
+        <span class="price">RM117,528</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/04/25/bmw-xm-label-in-malaysia-748-ps-1000-nm-phev-with-improved-chassis-insulation-rm1-65-million-otr/" target="_blank" rel="noopener">
+        <span class="date-tag">04/25</span>
+        <h3>BMW XM Label</h3>
+        <p>Replaces Label Red as the sole XM on sale, 748PS/1000Nm PHEV.</p>
+        <span class="price">RM1.65m</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/04/27/2026-bmw-x3-30-xdrive-m-sport-in-malaysia-258-ps-2-0t-mild-hybrid-harman-kardon-audio-rm387k-otr/" target="_blank" rel="noopener">
+        <span class="date-tag">04/27</span>
+        <h3>BMW X3 30 xDrive M Sport</h3>
+        <p>New high-output 2.0T mild-hybrid, 258PS, Harman Kardon audio.</p>
+        <span class="price">RM387,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- MAY -->
+  <section class="month-section" id="m05">
+    <div class="month-head">
+      <span class="month-odo">2026 · 05</span>
+      <span class="month-title">May</span>
+      <span class="month-count">8 models</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://paultan.org/2026/05/05/2026-audi-q5-in-malaysia-q5-advanced-2-0-tfsi-rm354k-q5-sportback-s-line-2-0-tfsi-quattro-rm423k/" target="_blank" rel="noopener">
+        <span class="date-tag">05/05</span>
+        <h3>Audi Q5 / Q5 Sportback</h3>
+        <p>Third-generation model, Advanced and S line Sportback specs.</p>
+        <span class="price">RM354k / RM423k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/05/06/2026-subaru-crosstrek-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">05/06</span>
+        <h3>Subaru Crosstrek</h3>
+        <p>XV successor, 2.0i-S EyeSight spec, CBU from Japan.</p>
+        <span class="price">RM190,788</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/05/08/toyota-yaris-cross-launched-in-malaysia-1-5l-na-and-hybrid-higher-spec-than-perodua-traz-from-rm100k/" target="_blank" rel="noopener">
+        <span class="date-tag">05/08</span>
+        <h3>Toyota Yaris Cross</h3>
+        <p>Perodua Traz twin with higher spec, 1.5L NA and Hybrid.</p>
+        <span class="price">From RM100,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/05/11/mercedes-amg-glc43-4matic-coupe-nightfall-edition-in-malaysia-upgraded-equipment-rm518888-otr/" target="_blank" rel="noopener">
+        <span class="date-tag">05/11</span>
+        <h3>Mercedes-AMG GLC43 Coupé Nightfall</h3>
+        <p>Upgraded equipment, differentiated from the regular GLC43 Coupé.</p>
+        <span class="price">RM518,888</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/05/20/foton-tunland-v7-v9-in-malaysia-full-size-mild-hybrid-pick-up-with-ford-ram-styling-priced-fr-rm122k/" target="_blank" rel="noopener">
+        <span class="date-tag">05/20</span>
+        <h3>Foton Tunland V7 / V9</h3>
+        <p>Full-size mild-hybrid pick-up styled after Ford/Ram, first time in Malaysia.</p>
+        <span class="price">From RM122,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/05/20/2026-icaur-03-ckd-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">05/20</span>
+        <h3>iCaur 03 <span class="badge">CKD</span></h3>
+        <p>Assembled at Chery Seremban, same spec as CBU version, 279PS.</p>
+        <span class="price">RM129,880</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/05/21/denza-b8-malaysia-launch/" target="_blank" rel="noopener">
+        <span class="date-tag">05/21</span>
+        <h3>Denza B8</h3>
+        <p>2.0T PHEV AWD off-road SUV, 612PS/760Nm, 6 or 7 seats.</p>
+        <span class="price">RM459k–519k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/05/21/gwm-tank-300-hev-launched-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">05/21</span>
+        <h3>GWM Tank 300 HEV</h3>
+        <p>2.0T hybrid system, 346PS/648Nm, auto parking and app connectivity.</p>
+        <span class="price">RM259,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- JUNE -->
+  <section class="month-section" id="m06">
+    <div class="month-head">
+      <span class="month-odo">2026 · 06</span>
+      <span class="month-title">June</span>
+      <span class="month-count">13 models</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://paultan.org/2026/06/05/byd-atto-3-facelift-in-malaysia-fwd-and-rwd-evo-up-to-313-ps-510-km-wltp-220-kw-dcfc-from-rm126k/" target="_blank" rel="noopener">
+        <span class="date-tag">06/05</span>
+        <h3>BYD Atto 3 <span class="badge">Facelift</span></h3>
+        <p>Major Evo upgrade, FWD/RWD options, up to 313PS, 510km range.</p>
+        <span class="price">From RM126,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/05/ford-everest-platinum-launched-in-malaysia-2-0l-and-3-0l-v6-diesels-rm349k-rm431k-sport-2-0l-updated/" target="_blank" rel="noopener">
+        <span class="date-tag">06/05</span>
+        <h3>Ford Everest Platinum</h3>
+        <p>Flagship trim, 2.0L and 3.0L V6 diesels, Sport 2.0L also updated.</p>
+        <span class="price">RM349k–431k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/05/suzuki-jimny-allgrip-plus-rhino-plus-in-malaysia-adas-front-and-rear-parking-sensors-rm159k-174k/" target="_blank" rel="noopener">
+        <span class="date-tag">06/05</span>
+        <h3>Suzuki Jimny AllGrip Plus / Rhino Plus</h3>
+        <p>Three-door gains ADAS and front/rear parking sensors.</p>
+        <span class="price">RM159k–174k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/06/suzuki-fronx-sport-launched-in-malaysia-b-segment-suv-dressed-up-at-rm131k-base-model-fr-rm119k/" target="_blank" rel="noopener">
+        <span class="date-tag">06/06</span>
+        <h3>Suzuki Fronx Sport</h3>
+        <p>Sporty version based on the Fronx Hybrid, alongside Jimny launch.</p>
+        <span class="price">RM131,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/09/2026-lexus-lx700h-now-in-malaysia-electrified-3-5l-twin-turbo-v6-flagship-from-rm1-54-million/" target="_blank" rel="noopener">
+        <span class="date-tag">06/09</span>
+        <h3>Lexus LX700h</h3>
+        <p>New flagship off-roader, full-hybrid, electrified 3.5L twin-turbo V6.</p>
+        <span class="price">From RM1.54m</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/09/2026-xpeng-x9-facelift-seven-seater-mpv-launched-in-malaysia-2wd-awd-three-variants-rm281k-rm336k/" target="_blank" rel="noopener">
+        <span class="date-tag">06/09</span>
+        <h3>Xpeng X9 <span class="badge">Facelift</span></h3>
+        <p>Seven-seat BEV MPV, CBU from China, three variants.</p>
+        <span class="price">RM281k–336k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/11/2026-proton-emas-7-premium-plus-launched-with-68-39-kwh-battery-115-kw-dc-450-km-wltp-rm119k-otr/" target="_blank" rel="noopener">
+        <span class="date-tag">06/11</span>
+        <h3>Proton eMas 7 Premium Plus</h3>
+        <p>New eMas 7 flagship, 68.39kWh battery, 450km WLTP range.</p>
+        <span class="price">RM119,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/11/mazda-cx-60-3-3l-mhev-in-malaysia-inline-6-cylinder-turbo-petrol-mild-hybrid-cbu-japan-rm252k-otr/" target="_blank" rel="noopener">
+        <span class="date-tag">06/11</span>
+        <h3>Mazda CX-60 3.3L MHEV</h3>
+        <p>Inline-six turbo mild-hybrid, CBU from Japan, sold alongside the 2.5L.</p>
+        <span class="price">RM252,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/12/maxus-eterron-9-ev-pick-up-debuts-442-ps-awd-430-km-wltp-rm224k-terron-9-2-5l-diesel-rm141k/" target="_blank" rel="noopener">
+        <span class="date-tag">06/12</span>
+        <h3>Maxus eTerron 9 EV / Terron 9 diesel</h3>
+        <p>EV pick-up debut, 442PS AWD, 430km range; diesel variant launched too.</p>
+        <span class="price">RM224k / RM141k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/19/2026-volkswagen-golf-r-mk8-5-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">06/19</span>
+        <h3>Volkswagen Golf R Mk8.5</h3>
+        <p>CKD locally assembled, 333PS 2.0T, new larger infotainment screen.</p>
+        <span class="price">From RM357,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/23/2026-zeekr-x-launched-in-malaysia-premium-rwd-and-flagship-awd-quicker-charging-rm159k-rm176k/" target="_blank" rel="noopener">
+        <span class="date-tag">06/23</span>
+        <h3>Zeekr X <span class="badge">Facelift</span></h3>
+        <p>Premium RWD and Flagship AWD, longer range, faster charging.</p>
+        <span class="price">RM159k–176k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/23/chery-tiggo-9-launched-in-malaysia-flagship-7-seater-d-suv-2-0t-awd-with-256-ps-390-nm-from-rm166800/" target="_blank" rel="noopener">
+        <span class="date-tag">06/23</span>
+        <h3>Chery Tiggo 9</h3>
+        <p>Brand flagship 7-seat D-SUV, 2.0T AWD, 256PS/390Nm.</p>
+        <span class="price">From RM166,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/06/26/suzuki-evitara-ev-launched-in-malaysia-174-ps-and-193-nm-426-km-wltp-cbu-india-rm188000/" target="_blank" rel="noopener">
+        <span class="date-tag">06/26</span>
+        <h3>Suzuki eVitara EV</h3>
+        <p>Shares platform with Toyota Urban Cruiser, 174PS/193Nm, CBU from India.</p>
+        <span class="price">RM188,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- JULY -->
+  <section class="month-section" id="m07">
+    <div class="month-head">
+      <span class="month-odo">2026 · 07</span>
+      <span class="month-title">July</span>
+      <span class="month-count">8 models</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://paultan.org/2026/07/13/volkswagen-tayron-in-malaysia-two-variants-1-5l-etsi-elegance-2-0-tsi-r-line-ckd-pekan-fr-rm191k/" target="_blank" rel="noopener">
+        <span class="date-tag">07/13</span>
+        <h3>Volkswagen Tayron</h3>
+        <p>Seven-seat SUV replacing the Tiguan Allspace, CKD from Pekan, Pahang.</p>
+        <span class="price">From RM191,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/07/15/denza-z9gt-ev-launched-in-malaysia-1156-ps-and-1210-nm-600-km-wltp-flash-charging-rm358800/" target="_blank" rel="noopener">
+        <span class="date-tag">07/15</span>
+        <h3>Denza Z9GT EV</h3>
+        <p>1156PS/1210Nm high-performance BEV shooting brake, Flash charging.</p>
+        <span class="price">RM358,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/07/16/2026-bmw-m2-cs-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">07/16</span>
+        <h3>BMW M2 CS</h3>
+        <p>Second-gen (G87), 530PS, 0-100km/h in 3.8s.</p>
+        <span class="price">From RM951,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/07/16/2026-bmw-m3-touring-competition-m-xdrive-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">07/16</span>
+        <h3>BMW M3 Touring Competition M xDrive</h3>
+        <p>First G81 Touring import, ~RM60k more than the M3 saloon.</p>
+        <span class="price">RM899,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/07/16/bmw-218-gran-coupe-m-sport-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">07/16</span>
+        <h3>BMW 218 Gran Coupé M Sport</h3>
+        <p>Launched same day as M2 CS and M3 Touring, entry four-door coupé.</p>
+        <span class="price">RM192,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/07/22/2026-jetour-t1-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">07/22</span>
+        <h3>Jetour T1</h3>
+        <p>Urbanised T2 sibling, 1.5T FWD and 2.0T AWD, 7-speed DCT.</p>
+        <span class="price">From RM130,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/07/23/ford-ranger-gets-new-variants-in-malaysia-platinum-3-0-for-rm206k-sport-2-0-3-0-from-rm146k-xl-rm128k/" target="_blank" rel="noopener">
+        <span class="date-tag">07/23</span>
+        <h3>Ford Ranger new variants</h3>
+        <p>Four new diesel variants: Platinum 3.0, Sport 3.0/2.0, XL 2.0.</p>
+        <span class="price">RM128k–206k</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/07/30/2026-byd-sealion-7-ev-launched-in-malaysia-91-3-kwh-battery-new-base-dynamic-variant-fr-rm163800/" target="_blank" rel="noopener">
+        <span class="date-tag">07/30</span>
+        <h3>BYD Sealion 7 <span class="badge">Facelift</span></h3>
+        <p>91.3kWh battery, new base Dynamic variant lowers entry price.</p>
+        <span class="price">From RM163,800</span>
+        <span class="go">Read original →</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- AUGUST -->
+  <section class="month-section" id="m08">
+    <div class="month-head">
+      <span class="month-odo">2026 · 08</span>
+      <span class="month-title">August (to 08/22)</span>
+      <span class="month-count">5 models</span>
+    </div>
+    <div class="grid">
+
+      <a class="card" href="https://paultan.org/2026/08/06/2026-bmw-ix3-in-malaysia-na5-50-xdrive-m-sport-pro-arrives-in-swb-spec-with-805-km-wltp-priced-fr-rm380k/" target="_blank" rel="noopener">
+        <span class="date-tag">08/06</span>
+        <h3>BMW iX3</h3>
+        <p>First Neue Klasse model, NA5 50 xDrive M Sport Pro SWB, 805km range.</p>
+        <span class="price">From RM379,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/08/07/zeekr-7x-black-nova-launched-in-malaysia-rm237540/" target="_blank" rel="noopener">
+        <span class="date-tag">08/07</span>
+        <h3>Zeekr 7X Black Nova <span class="badge">Limited 200 units</span></h3>
+        <p>All-black exterior with two-tone interior, based on AWD Performance.</p>
+        <span class="price">RM235,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/08/12/2026-volkswagen-tayron-r-line-gets-official-pricing-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">08/12</span>
+        <h3>Volkswagen Tayron R-Line <span class="badge">Priced</span></h3>
+        <p>Official pricing for the top seven-seat SUV, RM48k more than Elegance.</p>
+        <span class="price">RM239,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/08/14/2026-mercedes-benz-cla250-in-malaysia-c174-ev-272-ps-792-km-wltp-range-mbux-superscreen-rm275k/" target="_blank" rel="noopener">
+        <span class="date-tag">08/14</span>
+        <h3>Mercedes-Benz CLA250+</h3>
+        <p>C174 reborn as an all-electric four-door coupé, 272PS, 792km WLTP.</p>
+        <span class="price">RM275,000</span>
+        <span class="go">Read original →</span>
+      </a>
+
+      <a class="card" href="https://paultan.org/2026/08/21/jetour-t2-dark-warrior-limited-edition-launched-in-malaysia/" target="_blank" rel="noopener">
+        <span class="date-tag">08/21</span>
+        <h3>Jetour T2 Dark Warrior <span class="badge">Limited 69 units</span></h3>
+        <p>Malaysia 69th Anniversary special edition, just 69 units.</p>
+        <span class="price">RM167,600</span>
+        <span class="go">Read original →</span>
+      </a>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Data compiled from  <a href="https://paultan.org/topics/local-car-launches/" target="_blank" rel="noopener">paultan.org · Local Car Launches</a>
+   and  <a href="https://paultan.org/research/" target="_blank" rel="noopener">paultan.org · Car Research</a> public coverage; only major models with officially announced prices/launches are listed, minor spec updates or unpriced models are excluded. Clicking any card opens the original report in a new tab with full specs and photos. Clicking any card opens the original report in a new tab with full specifications and photos.
+</footer>
+
+</body>
+</html>
