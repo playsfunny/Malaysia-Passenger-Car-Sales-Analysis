@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<script>try{if(!localStorage.getItem('wb_lang')){location.replace('index_en.html');}}catch(e){}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>马来西亚乘用车销量分析工具 | 2021-2026 汽车市场数据（JPJ注册数据）</title>
@@ -210,6 +211,13 @@ footer .col{max-width:300px}
   .hero h1{font-size:26px}
   .nav a.btn{font-size:13px;padding:6px 12px}
 }
+
+.lang-switch{display:flex;align-items:center;gap:2px;margin-left:10px;padding-left:10px;border-left:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:600;white-space:nowrap}
+.lang-switch a{color:rgba(255,255,255,.6);padding:3px 7px;border-radius:6px}
+.lang-switch a.on{color:#fff;background:rgba(62,201,192,.24)}
+.lang-switch a:hover{color:#fff}
+.lang-switch .sep{color:rgba(255,255,255,.25);font-style:normal}
+
 </style>
 </head>
 <body>
@@ -221,7 +229,7 @@ footer .col{max-width:300px}
       <a href="/" class="on">首页</a>
       <a href="/tool">工具</a>
       <a href="/news">新闻</a>
-    </nav>
+      <span class="lang-switch"><a href="/" class="on" onclick="localStorage.setItem('wb_lang','zh')">中文</a><i class="sep">|</i><a href="/index_en" onclick="localStorage.setItem('wb_lang','en')">EN</a></span></nav>
   </div>
 </header>
 

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malaysia Passenger Car Sales Analysis Tool | 2021-2026 Market Data (JPJ)</title>
+<meta name="description" content="Malaysia passenger car sales analysis tool: an interactive platform based on JPJ official monthly registrations covering 2021-2026. Brand TOP50, 14-state distribution, fuel mix, model prices, after-sales policies and dealer business-district analysis. Data updated to July 2026.">
+<meta name="keywords" content="Malaysia car,Malaysia passenger car,car sales,passenger car market,Malaysia car analysis,car sales data,JPJ,Malaysia car brands,Perodua,Proton,14 states car sales">
+<meta name="robots" content="index,follow">
+<meta name="author" content="playsfunny">
+<link rel="canonical" href="https://playsfunny.com/index_en">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Malaysia Passenger Car Sales Analysis Tool | 2021-2026 Market Data">
+<meta property="og:description" content="Malaysia passenger car monthly registrations 2021-2026: brand TOP50, 14-state distribution, fuel mix, prices, after-sales policies and dealer business districts.">
+<meta property="og:url" content="https://playsfunny.com/index_en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Malaysia Passenger Car Sales Analysis Tool | 2021-2026">
+<meta name="twitter:description" content="Interactive Malaysia passenger car market analysis tool based on JPJ registrations, data through July 2026.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Malaysia Passenger Car Sales Analysis Tool",
+  "alternateName": "Malaysia Passenger Car Sales Analysis Tool",
+  "url": "https://playsfunny.com/index_en",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "inLanguage": "en",
+  "description": "Malaysia passenger car market analysis tool based on JPJ official monthly registrations, covering 2021-2026: brand TOP50, 14-state distribution, fuel mix, model prices, after-sales policies and dealer business-district analysis.",
+  "featureList": [
+    "Passenger car brand sales TOP50 ranking",
+    "Malaysia 14 states & federal territories sales distribution",
+    "Fuel mix analysis (ICE/HEV/BEV/PHEV/Diesel)",
+    "Model size-price-sales bubble analysis",
+    "TOP35 brands after-sales policy reference",
+    "Dealer network & business-district cluster analysis"
+  ],
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "CNY"}
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Dataset",
+  "name": "Malaysia Passenger Car Monthly Registration Dataset 2021-2026",
+  "description": "Monthly passenger car registration data for Malaysia, Jan 2021 - Jul 2026, by brand, model, state and fuel type, from the Malaysian Road Transport Department (JPJ) public registrations.",
+  "url": "https://playsfunny.com/tool.html",
+  "temporalCoverage": "2021-01/2026-07",
+  "spatialCoverage": "Malaysia",
+  "inLanguage": "en",
+  "variableMeasured": "monthly registrations (units)",
+  "provider": {
+    "@type": "Organization",
+    "name": "Malaysia Road Transport Department (JPJ)"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is the source of this Malaysia car sales data?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Monthly registration data from the Malaysian Road Transport Department (JPJ), enriched with MAA (Malaysian Automotive Association) and paultan.org model specs and prices. Brand, model, state and fuel dimensions come from official registration records."}
+    },
+    {
+      "@type": "Question",
+      "name": "Which years of car sales data does the tool cover?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Monthly data from January 2021 to July 2026 (67 months), continuously updated with each JPJ monthly release."}
+    },
+    {
+      "@type": "Question",
+      "name": "Which car brands are included?",
+      "acceptedAnswer": {"@type": "Answer", "text": "All mainstream passenger-car brands in Malaysia (TOP50), including Perodua, Proton, Toyota, Honda, Mazda, Chery, BYD, GWM, Neta, Xpeng, Leapmotor and more."}
+    },
+    {
+      "@type": "Question",
+      "name": "Can I view sales distribution by state?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Yes. The tool supports sales distribution across Malaysia's 14 states and federal territories, cross-filterable by brand, model and fuel type."}
+    },
+    {
+      "@type": "Question",
+      "name": "Does the tool support English?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Yes. The tool has built-in Chinese/English switching; analysis dimensions and charts can be toggled between the two languages."}
+    },
+    {
+      "@type": "Question",
+      "name": "How do I use this tool?",
+      "acceptedAnswer": {"@type": "Answer", "text": "No registration or login needed — click the \"Open Analysis Tool\" button. It is a single-file app with embedded data, no backend required."}
+    },
+    {
+      "@type": "Question",
+      "name": "How big is Malaysia's car market overall?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Total passenger-car registrations exceeded 4.32 million in 2021-2026; annual sales grew from ~530k in 2021 to ~870k in 2025, with ~489k registered in Jan-Jul 2026. Perodua and Proton have long held the top two spots."}
+    }
+  ]
+}
+</script>
+<style>
+:root{
+  --brand:#036B66;
+  --brand-2:#0E8F88;
+  --ink:#16241f;
+  --ink-2:#4b5a54;
+  --line:#e2e9e6;
+  --bg:#f7faf9;
+  --card:#ffffff;
+  --gold:#b98a2f;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--brand);text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+/* header */
+header.site-nav{position:sticky;top:0;z-index:10;background:rgba(13,42,38,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);color:#fff}
+.nav{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;color:#fff}
+.brand .dot{width:10px;height:10px;border-radius:3px;background:#3ec9c0;display:inline-block}
+.links{display:flex;gap:4px}
+.links a{color:rgba(255,255,255,.82);font-size:14px;padding:6px 16px;border-radius:8px;font-weight:500;text-decoration:none}
+.links a:hover{color:#fff;background:rgba(255,255,255,.12)}
+.links a.on{color:#fff;background:rgba(62,201,192,.24);font-weight:700}
+@media(max-width:520px){.links a{padding:6px 10px;font-size:13px}}
+/* hero */
+.hero{padding:72px 0 56px;text-align:center}
+.hero .tag{display:inline-block;font-size:13px;color:var(--brand);background:#e6f2f1;border:1px solid #c9e3e1;padding:4px 14px;border-radius:999px;font-weight:600;letter-spacing:.4px}
+.hero h1{font-size:40px;line-height:1.25;font-weight:800;margin:20px auto 16px;max-width:760px}
+.hero h1 em{font-style:normal;color:var(--brand)}
+.hero p.lead{font-size:17px;color:var(--ink-2);max-width:720px;margin:0 auto 28px}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.cta-main{background:var(--brand);color:#fff;padding:14px 34px;border-radius:10px;font-size:16px;font-weight:700;box-shadow:0 8px 24px rgba(3,107,102,.25);transition:transform .15s, box-shadow .15s}
+.cta-main:hover{background:var(--brand-2);transform:translateY(-1px);box-shadow:0 12px 28px rgba(3,107,102,.3)}
+.cta-sub{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:14px 26px;border-radius:10px;font-size:15px;font-weight:600}
+.cta-sub:hover{border-color:var(--brand);color:var(--brand)}
+.hero .note{margin-top:16px;font-size:13px;color:#8a9791}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:0 0 8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px 20px;text-align:center}
+.stat .num{font-size:30px;font-weight:800;color:var(--brand)}
+.stat .num small{font-size:16px;font-weight:700}
+.stat .lb{font-size:13px;color:var(--ink-2);margin-top:4px}
+/* sections */
+section{padding:56px 0}
+section h2{font-size:26px;font-weight:800;text-align:center;margin-bottom:10px}
+section .sub{text-align:center;color:var(--ink-2);font-size:15px;margin-bottom:34px;max-width:640px;margin-left:auto;margin-right:auto}
+/* about */
+.about-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:36px;align-items:center}
+.about p{color:var(--ink-2);font-size:15.5px;margin-bottom:14px}
+.about p strong{color:var(--ink)}
+.about ul{list-style:none;margin-top:6px}
+.about li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--ink-2);padding:5px 0}
+.about li::before{content:"✓";color:var(--brand);font-weight:800;flex-shrink:0}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px}
+.chart-card h3{font-size:14px;color:var(--ink-2);font-weight:600;margin-bottom:14px}
+.bars{display:flex;align-items:flex-end;gap:14px;height:170px;padding:0 4px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+.bar .col{width:100%;border-radius:6px 6px 0 0;background:var(--brand);opacity:.82;min-height:6px;transition:opacity .2s}
+.bar:hover .col{opacity:1}
+.bar .v{font-size:12px;font-weight:700;color:var(--ink);margin:6px 0 2px}
+.bar .y{font-size:11.5px;color:#8a9791}
+.bar .y b{color:var(--brand);font-weight:700}
+/* features */
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;transition:border-color .15s, box-shadow .15s}
+.feat:hover{border-color:#c9e3e1;box-shadow:0 10px 26px rgba(3,107,102,.08)}
+.feat .ic{width:40px;height:40px;border-radius:10px;background:#e6f2f1;color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;margin-bottom:14px}
+.feat h3{font-size:16px;font-weight:700;margin-bottom:8px}
+.feat p{font-size:14px;color:var(--ink-2)}
+/* post card */
+.post-card{max-width:760px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:12px;padding:24px 26px}
+.post-tag{display:inline-block;font-size:12px;color:var(--brand);background:#e6f2f1;border:1px solid #c9e3e1;padding:3px 12px;border-radius:999px;font-weight:600;margin-bottom:10px}
+.post-card h3{font-size:18px;font-weight:800;color:var(--ink);margin-bottom:10px}
+.post-card p{font-size:14.5px;color:var(--ink-2);margin-bottom:14px}
+.post-more{display:inline-block;font-weight:700;font-size:14px}
+.post-more:hover{text-decoration:underline}
+/* faq */
+.faq{max-width:760px;margin:0 auto}
+.faq details{border:1px solid var(--line);background:var(--card);border-radius:10px;margin-bottom:10px;padding:0}
+.faq summary{cursor:pointer;padding:16px 20px;font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq summary::after{content:"+";color:var(--brand);font-size:20px;font-weight:700}
+.faq details[open] summary::after{content:"−"}
+.faq details p{padding:0 20px 16px;color:var(--ink-2);font-size:14.5px}
+/* cta band */
+.cta-band{background:linear-gradient(135deg,var(--brand) 0%,var(--brand-2) 100%);border-radius:16px;padding:44px 32px;text-align:center;color:#fff}
+.cta-band h2{color:#fff;font-size:26px}
+.cta-band p{color:rgba(255,255,255,.85);margin:10px auto 22px;max-width:560px;font-size:15px}
+.cta-band .cta-main{background:#fff;color:var(--brand);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.cta-band .cta-main:hover{background:#f2faf9}
+/* footer */
+footer{border-top:1px solid var(--line);padding:34px 0 46px;margin-top:20px;background:var(--card)}
+.footer-grid{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer h4{font-size:13px;color:var(--ink-2);font-weight:600;margin-bottom:10px;letter-spacing:.5px}
+footer p,footer a{font-size:13px;color:#8a9791}
+footer a:hover{color:var(--brand)}
+footer .col{max-width:300px}
+@media (max-width:860px){
+  .hero h1{font-size:30px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .features{grid-template-columns:1fr 1fr}
+  .about-grid{grid-template-columns:1fr}
+  .hero{padding:48px 0 40px}
+}
+@media (max-width:520px){
+  .features{grid-template-columns:1fr}
+  .hero h1{font-size:26px}
+  .nav a.btn{font-size:13px;padding:6px 12px}
+}
+
+.lang-switch{display:flex;align-items:center;gap:2px;margin-left:10px;padding-left:10px;border-left:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:600;white-space:nowrap}
+.lang-switch a{color:rgba(255,255,255,.6);padding:3px 7px;border-radius:6px}
+.lang-switch a.on{color:#fff;background:rgba(62,201,192,.24)}
+.lang-switch a:hover{color:#fff}
+.lang-switch .sep{color:rgba(255,255,255,.25);font-style:normal}
+
+</style>
+</head>
+<body>
+
+<header class="site-nav">
+  <div class="wrap nav" style="max-width:1080px;height:52px">
+    <div class="brand"><span class="dot"></span>Malaysia Car Sales Analysis</div>
+    <nav class="links">
+      <a href="/" class="on">Home</a>
+      <a href="/tool">Tool</a>
+      <a href="/news">News</a>
+      <span class="lang-switch"><a href="/" onclick="localStorage.setItem('wb_lang','zh')">中文</a><i class="sep">|</i><a href="/index_en" class="on" onclick="localStorage.setItem('wb_lang','en')">EN</a></span></nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="wrap">
+    <span class="tag">Source: JPJ official monthly registrations · Updated to July 2026</span>
+    <h1>Malaysia <em>Passenger Car Sales</em> Analysis Tool<br>Complete 2021-2026 Car Market Data</h1>
+    <p class="lead">Built on official Malaysian Road Transport Department (JPJ) registration data, covering all mainstream brands and 14 states/federal territories with monthly sales. Nine analysis modules: brand ranking, state distribution, fuel mix, model prices, after-sales policies and dealer business districts. Chinese / English, no login, ready to use.</p>
+    <div class="cta-row">
+      <a class="cta-main" href="/tool">Open the Analysis Tool →</a>
+      <a class="cta-sub" href="#faq">FAQ</a>
+    </div>
+    <p class="note">Single-file app · data embedded · no backend · mobile friendly</p>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="num">4.32<small>M+</small></div><div class="lb">2021-2026 total registrations</div></div>
+    <div class="stat"><div class="num">50<small>+</small></div><div class="lb">passenger-car brands</div></div>
+    <div class="stat"><div class="num">14</div><div class="lb">states & federal territories</div></div>
+    <div class="stat"><div class="num">67</div><div class="lb">months of data (2021.01–2026.07)</div></div>
+  </div>
+</div>
+
+<!-- ABOUT + TREND -->
+<section id="about">
+  <div class="wrap about-grid">
+    <div class="about">
+      <h2 style="text-align:left">About Malaysia's Car Market</h2>
+      <p>The <strong>Malaysian passenger car market</strong> is one of Southeast Asia's most dynamic, with ~<strong>870k</strong> registrations in 2025 and steady growth. Local brands <strong>Perodua</strong> and <strong>Proton</strong> lead, while Japanese brands (<strong>Toyota</strong>, <strong>Honda</strong>, <strong>Mazda</strong>) face rising competition from Chinese brands (<strong>Chery</strong>, <strong>BYD</strong>, <strong>GWM</strong>, <strong>Neta</strong>, <strong>Xpeng</strong>, <strong>Leapmotor</strong>), and <strong>EV (BEV) / hybrid (HEV/PHEV)</strong> penetration is rising fast.</p>
+      <p>This tool cross-analyzes <strong>Malaysia car sales</strong> from <strong>JPJ official registration data</strong> so you can quickly see which brands sell best, which states drive volume, how the fuel mix is evolving, and how model prices are distributed — no technical background needed.</p>
+      <ul>
+        <li>Cross-filter by brand, model, state, fuel and body type</li>
+        <li>Rankings, YoY growth, share and heatmaps</li>
+        <li>TOP35 brands after-sales policies (warranty/service cost) reference</li>
+        <li>Nationwide dealer map + isochrones + business-district clusters</li>
+      </ul>
+    </div>
+    <div class="chart-card">
+      <h3>Malaysia annual passenger car registrations (10k units)</h3>
+      <div class="bars">
+        <div class="bar"><div class="col" style="height:61%"></div><div class="v">53.0</div><div class="y">2021</div></div>
+        <div class="bar"><div class="col" style="height:86%"></div><div class="v">74.5</div><div class="y">2022</div></div>
+        <div class="bar"><div class="col" style="height:96%"></div><div class="v">83.2</div><div class="y">2023</div></div>
+        <div class="bar"><div class="col" style="height:98%"></div><div class="v">85.6</div><div class="y">2024</div></div>
+        <div class="bar"><div class="col" style="height:100%"></div><div class="v">87.0</div><div class="y">2025</div></div>
+        <div class="bar"><div class="col" style="height:56%"></div><div class="v">48.9</div><div class="y"><b>2026</b> Jan–Jul</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="wrap">
+    <h2>Nine Analysis Modules</h2>
+    <p class="sub">From macro market to individual models — a complete Malaysia car market data toolkit</p>
+    <div class="features">
+      <div class="feat"><div class="ic">01</div><h3>Market Dashboard</h3><p>Monthly totals, brand TOP ranking, fuel mix (ICE/HEV/BEV/PHEV/Diesel) and price-band distribution in one view.</p></div>
+      <div class="feat"><div class="ic">02</div><h3>Model Bubble Analysis</h3><p>Size × price × sales 3D bubbles to quickly spot star models and competitive dynamics in each segment.</p></div>
+      <div class="feat"><div class="ic">03</div><h3>MAA Model Analysis</h3><p>On-sale model/trim sales, regional sales map, body type and price-segment cross analysis.</p></div>
+      <div class="feat"><div class="ic">04</div><h3>Market Analysis</h3><p>Treemap, heatmap, Pareto, box plot, slope and waterfall charts for deep market structure analysis.</p></div>
+      <div class="feat"><div class="ic">05</div><h3>After-Sales Policy</h3><p>TOP35 brands warranty policies, service intervals and annual service cost estimates (15k km/year).</p></div>
+      <div class="feat"><div class="ic">06</div><h3>Business Districts</h3><p>Nationwide dealer map (4S/3S/2S/1S), 10/20/30-min drive isochrones, cluster analysis and population coverage.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- LATEST POST -->
+<section id="post">
+  <div class="wrap">
+    <h2>Monthly Market Analysis</h2>
+    <p class="sub">Deep-dive Malaysia car market analysis based on JPJ registrations, updated monthly</p>
+    <div class="post-card">
+      <div class="post-tag">July 2026 · Latest</div>
+      <h3>Malaysia Passenger Car Sales Analysis: July 2026 (80,030 units, +5.8% YoY)</h3>
+      <p>July registrations hit a new 2026 high; Perodua/Proton hold ~61% combined share; BEV share rose to 8.7% and electrified to 15.8%, doubling within a year. Jetour (+682%) and Proton (+38.7%) led growth.</p>
+      <a class="post-more" href="posts/2026-07.html">Read full article →</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <h2>FAQ</h2>
+    <p class="sub">About data sources, coverage and usage</p>
+    <div class="faq">
+      <details><summary>What is the source of this Malaysia car sales data?</summary><p>Monthly registration data from the Malaysian Road Transport Department (JPJ), enriched with MAA and paultan.org model specs and prices. Brand, model, state and fuel dimensions come from official records.</p></details>
+      <details><summary>Which years of car sales data does the tool cover?</summary><p>Monthly data from January 2021 to July 2026 (67 months), continuously updated with each JPJ monthly release.</p></details>
+      <details><summary>Which car brands are included?</summary><p>All mainstream passenger-car brands (TOP50): Perodua, Proton, Toyota, Honda, Mazda, Chery, BYD, GWM, Neta, Xpeng, Leapmotor and more.</p></details>
+      <details><summary>Can I view sales distribution by state?</summary><p>Yes. The tool shows sales across Malaysia's 14 states and federal territories, cross-filterable by brand, model and fuel type.</p></details>
+      <details><summary>Does the tool support English?</summary><p>Yes. Built-in Chinese/English switching covers all analysis dimensions and charts.</p></details>
+      <details><summary>How do I use this tool?</summary><p>No registration or login needed — click the "Open Analysis Tool" button. Single-file app with embedded data, no backend required.</p></details>
+      <details><summary>How big is Malaysia's car market overall?</summary><p>Total registrations exceeded 4.32 million in 2021-2026; annual sales grew from ~530k (2021) to ~870k (2025), with ~489k in Jan-Jul 2026. Perodua and Proton have long held the top two spots.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<section>
+  <div class="wrap">
+    <div class="cta-band">
+      <h2>Start Exploring Malaysia's Car Market</h2>
+      <p>All data is embedded in the tool — click the button below. Free, no registration.</p>
+      <a class="cta-main" href="/tool">Open the Analysis Tool →</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-grid">
+    <div class="col">
+      <h4>Malaysia Passenger Car Sales Analysis Tool</h4>
+      <p>Interactive car market analysis platform based on JPJ official monthly registrations, 2021-2026. Self-contained single-file deployment, no third-party tracking.</p>
+    </div>
+    <div class="col">
+      <h4>Quick Links</h4>
+      <p><a href="/tool">Open Analysis Tool</a><br><a href="#about">Market Overview</a><br><a href="#features">Modules</a><br><a href="#faq">FAQ</a></p>
+    </div>
+    <div class="col">
+      <h4>Data Sources</h4>
+      <p>JPJ (Road Transport Department) monthly registrations<br>MAA (Malaysian Automotive Association)<br>paultan.org (model specs & prices)</p>
+    </div>
+  </div>
+  <div class="wrap" style="margin-top:22px;border-top:1px solid var(--line);padding-top:16px">
+    <p style="text-align:center">© 2026 playsfunny.com · Data for reference only; not investment or purchase advice</p>
+  </div>
+</footer>
+
+</body>
+</html>

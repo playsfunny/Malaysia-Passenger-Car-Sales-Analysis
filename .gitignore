@@ -9,5 +9,9 @@
 !/robots.txt
 !/posts/
 !/posts/*.html
+!/index_en.html
+!/news_en.html
+!/posts/2026-07_en.html
+
 !/README.md
 !/.nojekyll
