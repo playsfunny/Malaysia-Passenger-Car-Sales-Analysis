@@ -10959,11 +10959,11 @@ document.querySelectorAll('.lang-cap').forEach(b => {
   b.addEventListener('click', () => setLang(b.dataset.lang));
 });
 initAll();
-// site lang sync: default EN for first-time visitors; follow explicit choice otherwise
+// site lang sync: default ZH for first-time visitors; follow explicit choice otherwise
 try{
   var _wbl=localStorage.getItem('wb_lang');
   var _cur=(typeof LANG!=='undefined')?LANG:'zh';
-  if(!_wbl){ _wbl='en'; try{localStorage.setItem('wb_lang','en');}catch(e){} }
+  if(!_wbl){ _wbl='zh'; try{localStorage.setItem('wb_lang','zh');}catch(e){} }
   if(_wbl!==_cur){setLang(_wbl);}
   document.querySelectorAll('.site-nav .lang-switch a').forEach(function(a){a.classList.toggle('on',a.dataset.lang===_wbl);});
 }catch(e){}
