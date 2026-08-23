@@ -1,43 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- 首页：英文默认（index.html 会自动跳到 index_en） -->
   <url>
     <loc>https://playsfunny.com/</loc>
-    <lastmod>2026-08-21</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/index_en"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/index_en"/>
+    <lastmod>2026-08-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://playsfunny.com/index_en</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/index_en"/>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/index_en"/>
+    <lastmod>2026-08-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <!-- 工具：英文默认（template.html 默认英文） -->
+  <url>
     <loc>https://playsfunny.com/tool</loc>
-    <lastmod>2026-08-21</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/tool"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/tool"/>
+    <lastmod>2026-08-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
-  <url>
-    <loc>https://playsfunny.com/posts/2026-07</loc>
-    <lastmod>2026-08-21</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
+  <!-- 新闻 -->
   <url>
     <loc>https://playsfunny.com/news</loc>
-    <lastmod>2026-08-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://playsfunny.com/index_en</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/news"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/news_en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/news_en"/>
     <lastmod>2026-08-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://playsfunny.com/news_en</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/news"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/news_en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/news_en"/>
+    <lastmod>2026-08-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <!-- 新车速递（V279 新增） -->
+  <url>
+    <loc>https://playsfunny.com/launches</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/launches"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/launches_en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/launches_en"/>
     <lastmod>2026-08-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://playsfunny.com/launches_en</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/launches"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/launches_en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/launches_en"/>
+    <lastmod>2026-08-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <!-- 月度文章 -->
+  <url>
+    <loc>https://playsfunny.com/posts/2026-07</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/posts/2026-07"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/posts/2026-07_en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/posts/2026-07_en"/>
+    <lastmod>2026-08-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://playsfunny.com/posts/2026-07_en</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/posts/2026-07"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/posts/2026-07_en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/posts/2026-07_en"/>
     <lastmod>2026-08-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
