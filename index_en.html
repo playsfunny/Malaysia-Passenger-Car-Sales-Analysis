@@ -162,13 +162,12 @@ section .sub{text-align:center;color:var(--ink-2);font-size:15px;margin-bottom:3
 .bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
 .bar .col{width:100%;border-radius:6px 6px 0 0;background:var(--brand);opacity:.82;min-height:6px;transition:opacity .2s}
 .bar:hover .col{opacity:1}
-/* 2026 bar split: bottom=YTD actual (solid), top=remaining forecast (dashed), total=82万 */
+/* 2026 bar: dashed outline (850k full height), YTD line inside, value label below like other years */
 .bar-split{position:relative}
-.bar-split .col-actual{position:absolute;bottom:0;left:20%;width:60%;background:var(--brand);border-radius:6px 6px 0 0;opacity:.95}
-.bar-split .col-forecast{position:absolute;left:20%;width:60%;background-image:repeating-linear-gradient(45deg,var(--brand) 0,var(--brand) 6px,#fff 6px,#fff 12px);opacity:.5;border-radius:6px 6px 0 0;border-top:1px dashed rgba(255,255,255,.6);display:flex;align-items:flex-start;justify-content:center;color:var(--ink);font-weight:700;font-size:11px;padding-top:3px;box-sizing:border-box}
-.bar-split .v-ytd{position:absolute;bottom:-22px;left:0;width:100%;text-align:center;font-size:12px;font-weight:700;color:var(--ink)}
-.bar-split .v-total{position:relative;margin:4px 0 2px;font-weight:800;color:var(--brand);font-size:14px;display:flex;flex-direction:column;align-items:center;line-height:1.1;z-index:2}
-.bar-split .forecast-tag{font-size:9px;color:#8a9791;font-weight:600;letter-spacing:.5px}
+.bar-split .col-forecast{width:100%;height:100%;border:2px dashed var(--brand);border-radius:6px 6px 0 0;background:transparent;box-sizing:border-box;position:relative;display:flex;flex-direction:column}
+.bar-split .fc-label{text-align:center;font-size:9px;color:var(--brand);font-weight:600;padding-top:4px;letter-spacing:.5px}
+.bar-split .ytd-line{position:absolute;left:-4px;right:-4px;height:0;border-top:1.5px solid var(--brand)}
+.bar-split .v-ytd{position:absolute;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:var(--ink);white-space:nowrap}
 .bar .v{font-size:12px;font-weight:700;color:var(--ink);margin:6px 0 2px}
 .bar .y{font-size:11.5px;color:#8a9791}
 .bar .y b{color:var(--brand);font-weight:700}
@@ -280,14 +279,14 @@ footer .col{max-width:300px}
       </ul>
     </div>
     <div class="chart-card">
-      <h3>Malaysia annual passenger car registrations (10k units)</h3>
+      <h3>Malaysia annual passenger car registrations (k)</h3>
       <div class="bars">
-        <div class="bar"><div class="col" style="height:61%"></div><div class="v">53.0</div><div class="y">2021</div></div>
-        <div class="bar"><div class="col" style="height:86%"></div><div class="v">74.5</div><div class="y">2022</div></div>
-        <div class="bar"><div class="col" style="height:96%"></div><div class="v">83.2</div><div class="y">2023</div></div>
-        <div class="bar"><div class="col" style="height:98%"></div><div class="v">85.6</div><div class="y">2024</div></div>
-        <div class="bar"><div class="col" style="height:100%"></div><div class="v">87.0</div><div class="y">2025</div></div>
-        <div class="bar bar-split"><div class="col-actual" style="height:59.6%"></div><div class="col-forecast" style="bottom:59.6%;height:40.4%"></div><div class="v-total">82.0<div class="forecast-tag">forecast</div></div><div class="v-ytd">48.9</div><div class="y"><b>2026</b></div></div>
+        <div class="bar"><div class="col" style="height:61%"></div><div class="v">530</div><div class="y">2021</div></div>
+        <div class="bar"><div class="col" style="height:86%"></div><div class="v">745</div><div class="y">2022</div></div>
+        <div class="bar"><div class="col" style="height:96%"></div><div class="v">832</div><div class="y">2023</div></div>
+        <div class="bar"><div class="col" style="height:98%"></div><div class="v">856</div><div class="y">2024</div></div>
+        <div class="bar"><div class="col" style="height:100%"></div><div class="v">870</div><div class="y">2025</div></div>
+        <div class="bar bar-split"><div class="col-forecast" style="height:97.7%"><div class="fc-label">forecast</div><div class="ytd-line" style="bottom:57.5%"></div><div class="v-ytd" style="bottom:57.5%">489</div></div><div class="v">850</div><div class="y"><b>2026</b></div></div>
       </div>
     </div>
   </div>
