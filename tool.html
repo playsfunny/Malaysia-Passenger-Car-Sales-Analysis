@@ -1415,9 +1415,9 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
 <nav class="site-nav"><div class="in">
   <a class="nb" href="/"><span class="d"></span><span class="tt">马来西亚乘用车销量分析</span></a>
   <div class="nl">
-    <a href="/">首页</a>
-    <a href="/tool" class="on">工具</a>
-    <a href="/news">新闻</a>
+    <a href="/" data-i18n="nav.home">首页</a>
+    <a href="/tool" class="on" data-i18n="nav.tool">工具</a>
+    <a href="/news" data-i18n="nav.news">新闻</a>
     <a href="/launches" data-i18n="nav.newLaunches">新车速递</a>
     <span class="lang-switch">
       <a href="javascript:void(0)" data-lang="zh" onclick="try{localStorage.setItem('wb_lang','zh')}catch(e){};setLang('zh')">中文</a><i class="sep">|</i>
@@ -3734,7 +3734,7 @@ zh: {
   'mt.c2a':'全选', 'mt.schSeg':'按 Segment', 'mt.top60':'仅列出前 60 个版型供勾选',
   'ft.gen':'数据生成时间', 'ft.app':'马来西亚乘用车注册数据分析',
   'tab.maa':'MAA 数据分析',
-  'tab.dealer':'商圈分析', 'tab.aftersales':'售后政策分析', 'nav.newLaunches':'新车速递', 'md.lbl':'车型（Model）',
+  'tab.dealer':'商圈分析', 'tab.aftersales':'售后政策分析', 'nav.home':'首页', 'nav.tool':'工具', 'nav.news':'新闻', 'nav.newLaunches':'新车速递', 'md.lbl':'车型（Model）',
   'as.title':'马来西亚 TOP 35 汽车品牌售后政策速查', 'as.brands':'品牌', 'as.regs':'2026年累计', 'as.base':'排名依据', 'as.baseVal':'2026年累计',
   'as.sph':'搜索品牌…（跨阵营匹配排名与政策）', 'sph.maker':'🔍 搜索厂家…', 'sph.model':'🔍 搜索车型…', 'sph.modelTrim':'🔍 搜索车型版型…', 'sph.brandModelVariant':'🔍 搜索 品牌 / 车型 / 版本…', 'as.brandToggle':'按品牌筛选（35）▾',
   'as.rankT':'01 销量排名 · 2026 累计销量 TOP 35', 'as.rankS':'排名/2026 累计销量/同比 三列从仪表盘「分 Maker 销量分析」模块实时同步（截至最新数据月份）; 2025 全年销量为静态基线; 总保有量列按 2021-2026 累计注册量估算,以"约"标注(后续接入 JPJ 完整历年注册库后替换)。默认显示前 10 名,点击展开完整 35 个品牌。',
@@ -3932,7 +3932,7 @@ en: {
   'mt.c2a':'Select All', 'mt.schSeg':'By Segment', 'mt.top60':'Only top 60 trims listed',
   'ft.gen':'Data generated', 'ft.app':'Malaysia passenger car registration analysis',
   'tab.maa':'MAA Analysis',
-  'tab.dealer':'Dealer Map', 'tab.aftersales':'After-Sales', 'nav.newLaunches':'New Launches', 'md.lbl':'Model',
+  'tab.dealer':'Dealer Map', 'tab.aftersales':'After-Sales', 'nav.home':'Home', 'nav.tool':'Tool', 'nav.news':'News', 'nav.newLaunches':'New Launches', 'md.lbl':'Model',
   'as.title':'Malaysia Top-35 Brand After-Sales Cheat Sheet', 'as.brands':'Brands', 'as.regs':'2026 Cumulative', 'as.base':'Ranking basis', 'as.baseVal':'2026 YTD',
   'as.sph':'Search brand… (cross-category)', 'sph.maker':'🔍 Search Maker…', 'sph.model':'🔍 Search Model…', 'sph.modelTrim':'🔍 Search Model Trim…', 'sph.brandModelVariant':'🔍 Search brand/model/variant…', 'as.brandToggle':'Filter by brand (35) ▾',
   'as.rankT':'01 Sales Ranking · 2026 YTD Top 35', 'as.rankS':'Rank/sales2026 YTD/YoY columns are synced live with the Dashboard → Maker Sales Analysis module (through the latest data month). 2025 full-year baseline is static; total parks column is estimated from 2021-2026 cumulative JPJ registrations and marked with "~". Top 10 shown by default; click to expand all 35.',
@@ -10960,10 +10960,10 @@ document.querySelectorAll('.lang-cap').forEach(b => {
 });
 initAll();
 
-// Hide tool's internal lang-switch when deployed (site nav owns language)
+// Hide BOTH tool language controls when deployed (site nav owns language)
 try{
   if(/playsfunny\.com/i.test(location.href)){
-    document.querySelectorAll('.site-nav .lang-switch').forEach(function(el){el.style.display='none';});
+    document.querySelectorAll('.site-nav .lang-switch, .lang-caps').forEach(function(el){el.style.display='none';});
   }
 }catch(e){}
 
