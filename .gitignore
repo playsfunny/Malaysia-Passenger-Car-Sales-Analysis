@@ -17,3 +17,6 @@
 !/.nojekyll
 !/launches.html
 !/launches_en.html
+
+# 翻译 API key（本地受保护，绝不入库）
+.translate_key
