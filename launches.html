@@ -87,7 +87,7 @@
     background:var(--asphalt-2);
     border-bottom:1px solid var(--line);
     position:sticky;
-    top:0;
+    top:52px;
     z-index:10;
     backdrop-filter:blur(6px);
   }
@@ -340,9 +340,34 @@
     .gallery2 img{height:210px;}
   }
 
+
+  /* ===== site-nav (shared across site) ===== */
+  header.site-nav{position:sticky;top:0;z-index:50;background:rgba(22,24,27,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);color:#fff;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 6vw;}
+  header.site-nav .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:#fff;}
+  header.site-nav .brand .dot{width:10px;height:10px;border-radius:3px;background:var(--amber);display:inline-block;}
+  header.site-nav .links{display:flex;align-items:center;gap:4px;}
+  header.site-nav .links a{color:rgba(255,255,255,.82);font-size:14px;padding:6px 14px;border-radius:8px;font-weight:500;text-decoration:none;}
+  header.site-nav .links a:hover{color:#fff;background:rgba(255,255,255,.12);}
+  header.site-nav .links a.on{color:#fff;background:rgba(255,176,32,.22);font-weight:700;}
+  header.site-nav .lang-switch{display:flex;align-items:center;gap:2px;margin-left:8px;padding-left:12px;border-left:1px solid rgba(255,255,255,.18);font-size:13px;font-weight:600;}
+  header.site-nav .lang-switch a{color:rgba(255,255,255,.6);padding:3px 7px;border-radius:6px;}
+  header.site-nav .lang-switch a.on{color:#fff;background:rgba(255,176,32,.22);}
+  header.site-nav .lang-switch a:hover{color:#fff;}
+  header.site-nav .lang-switch .sep{color:rgba(255,255,255,.25);font-style:normal;}
 </style>
 </head>
 <body data-lang="zh">
+<header class="site-nav">
+  <div class="brand"><span class="dot"></span>马来西亚乘用车销量分析</div>
+  <nav class="links">
+    <a href="/">首页</a>
+    <a href="/tool">工具</a>
+    <a href="/news">新闻</a>
+    <a href="/launches" class="on">新车速递</a>
+    <span class="lang-switch"><a href="/launches" class="on">中文</a><i class="sep">|</i><a href="/launches_en" class="">EN</a></span>
+  </nav>
+</header>
+
 
 
 <header>
@@ -1071,12 +1096,7 @@
 <div class="topbar" id="articles-top">
   <div class="brand">大马车讯<b>记录仪</b></div>
   <a class="home" href="#"><span class="zh">↑ 回到纵览</span><span class="en">↑ Back to overview</span></a>
-  <div class="spacer"></div>
-  <div class="langswitch">
-    <button id="btn-zh" class="on" onclick="setLang('zh')">中文</button>
-    <button id="btn-en" onclick="setLang('en')">EN</button>
-  </div>
-</div>
+  <div class="spacer"></div></div>
 <div class="indexbar">
   <h4><span class="zh">// 车型索引 · 66 篇</span><span class="en">// Model index · 66 articles</span></h4>
   <div class="chiprow">
@@ -4037,14 +4057,7 @@
   <p class="en" style="margin-top:14px;">Article text is original editorial synthesis, not verbatim translation. Specifications and prices follow official announcements and are subject to change. Images are hotlinked and remain the property of their original publishers and respective brands.</p>
 </footer>
 
-<script>
-  function setLang(l){
-    document.body.setAttribute('data-lang', l);
-    document.documentElement.lang = (l === 'zh') ? 'zh-CN' : 'en';
-    document.getElementById('btn-zh').classList.toggle('on', l === 'zh');
-    document.getElementById('btn-en').classList.toggle('on', l === 'en');
-  }
-</script>
+
 
 </body>
 </html>
