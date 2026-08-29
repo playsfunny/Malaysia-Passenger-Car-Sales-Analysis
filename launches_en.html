@@ -353,6 +353,25 @@
 </style>
 </head>
 <body data-lang="en">
+<script>
+/* V298: 读取站点语言覆盖写死的 data-lang，解决 EN 状态打开却显示中文 */
+(function(){try{
+  var l=localStorage.getItem('wb_lang');
+  if(l!=='en'&&l!=='zh')return;
+  /* 必须紧邻 <body> 同步执行：抢在正文渲染前定语言，否则会闪一下中文 */
+  document.body.dataset.lang=l;
+  document.documentElement.lang=(l==='en'?'en':'zh-CN');
+  /* .lang-switch 此时尚未解析到（在文档更后面），必须等 DOM 就绪再同步高亮 */
+  function syncSwitch(){
+    document.querySelectorAll('.lang-switch a').forEach(function(a){
+      var isEn=(a.getAttribute('href')||'').indexOf('_en')>-1;
+      if((l==='en')===isEn)a.classList.add('on');else a.classList.remove('on');
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncSwitch);
+  else syncSwitch();
+}catch(e){}})();
+</script>
 <header class="site-nav">
   <div class="brand"><span class="dot"></span>Malaysia Car Sales Analysis</div>
   <nav class="links">

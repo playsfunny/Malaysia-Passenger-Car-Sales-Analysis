@@ -5,6 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>马来西亚乘用车销量分析工具 2021-2026</title>
 <script>
+/* V298: 渲染前判定语言，EN 用户先隐藏主体，避免首屏中文闪现 */
+(function(){try{
+  if(localStorage.getItem("wb_lang")==="en"){
+    document.documentElement.className+=" v298-lang-en";
+    /* 兜底：初始化异常也要在 5s 后显示，避免永久空白 */
+    setTimeout(function(){try{document.documentElement.classList.remove("v298-lang-en");}catch(e){}},5000);
+  }
+}catch(e){}})();
+</script>
+<style>
+/* V298: 语言预加载期间隐藏主体，applyLangStatic 完成后再显示 */
+html.v298-lang-en body{visibility:hidden;}
+</style>
+<script>
 /* Chart.js 4.5.1 (inlined) */
 /*!
  * Chart.js v4.5.1
@@ -11254,6 +11268,8 @@ try{
   if(_wbl!==_cur){setLang(_wbl);}
   document.querySelectorAll('.site-nav .lang-switch a').forEach(function(a){a.classList.toggle('on',a.dataset.lang===_wbl);});
 }catch(e){}
+/* V298: 语言已应用完毕 → 显示主体（消除 EN 首屏中文闪现） */
+try{document.documentElement.classList.remove('v298-lang-en');}catch(e){}
 
 </script>
 <script>
