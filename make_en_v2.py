@@ -469,6 +469,10 @@ def main():
     for el in soup.find_all(string=True):
         if el.parent.name in ("script", "style"):
             continue
+        # 语言切换器的「中文/EN」由 fix_lang_switch 后处理，不参与翻译管线，
+        # 否则 "中文" 会被当作未译条目，在 API 关闭时触发闸门失败。
+        if el.find_parent(class_="lang-switch"):
+            continue
         s = str(el).strip()
         if s and has_zh(s):
             text_strs.add(s)
