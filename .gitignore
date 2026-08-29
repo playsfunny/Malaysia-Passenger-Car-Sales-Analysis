@@ -26,3 +26,10 @@
 
 # 翻译缓存映射（本地状态，重跑可重建；放项目内避免 /tmp 被系统清理）
 /.cache/
+
+# EN 页自动构建（GitHub Actions）：workflow + 质量校验脚本（均不含密钥）
+# 注意：`*` 全忽略模式下，目录需逐层重新纳入，否则子文件无法 re-include
+!/.github/
+!/.github/workflows/
+!/.github/workflows/launches-en.yml
+!/check_en_page.py

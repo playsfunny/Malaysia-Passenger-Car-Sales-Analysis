@@ -207,11 +207,21 @@ def has_zh(s):
 def split_sub(s):
     return re.match(r'^(//\s*\d{4}\.\d{2}\.\d{2}\s*·\s*[^··]+\s*·\s*)(.*)$', s)
 
-# ---------------- DeepL Translation ----------------
+# ---------------- 翻译引擎：DeepL 主 + Google v2 兜底 ----------------
+# key 来源优先级：环境变量（CI: repo secrets）> 同目录文件（本地: chmod 600，不入库）
 KEY_FILE = os.path.join(BASE, os.environ.get("DEEPL_KEY_FILE", ".translate_key"))
-DEEPL_KEY = ""
-if os.path.exists(KEY_FILE):
+DEEPL_KEY = (os.environ.get("DEEPL_KEY") or "").strip()
+if not DEEPL_KEY and os.path.exists(KEY_FILE):
     DEEPL_KEY = open(KEY_FILE, encoding="utf-8").read().strip()
+
+GOOGLE_KEY_FILE = os.path.join(BASE, os.environ.get("GOOGLE_KEY_FILE", ".google_api_key"))
+GOOGLE_KEY = (os.environ.get("GOOGLE_API_KEY") or "").strip()
+if not GOOGLE_KEY and os.path.exists(GOOGLE_KEY_FILE):
+    GOOGLE_KEY = open(GOOGLE_KEY_FILE, encoding="utf-8").read().strip()
+# 端点可覆盖（自测/代理场景）；默认官方 v2
+GOOGLE_ENDPOINT = os.environ.get("GOOGLE_TRANSLATE_ENDPOINT",
+                                 "https://translation.googleapis.com/language/translate/v2")
+_google_warned = False
 # 先试 pro 端点，再回退 free 端点（free 仅 EU IP 可用，非 EU 会 456）
 DEEPL_HOSTS = ["https://api.deepl.com", "https://api-free.deepl.com"]
 
@@ -249,11 +259,61 @@ def _deepl_call(texts):
                 time.sleep(1.5); continue
     return list(texts)
 
+def _google_call(texts):
+    """Google Cloud Translation v2 批量翻译（zh→en）。失败/未配置/项目被阻 → 返回原文。
+    注：v2 对未启用结算或受组织策略限制的项目会返回 403 '... are blocked.'，
+    此处静默降级，保证 EN 构建不被打断。网络走标准 http(s)_proxy 环境变量。"""
+    global _google_warned
+    texts = list(texts)
+    if not GOOGLE_KEY:
+        return texts
+    import html as _html
+    body = json.dumps({"q": texts, "source": "zh-CN", "target": "en",
+                       "format": "text"}).encode("utf-8")
+    url = GOOGLE_ENDPOINT + "?key=" + urllib.parse.quote(GOOGLE_KEY)
+    req = urllib.request.Request(url, data=body,
+                                 headers={"Content-Type": "application/json; charset=utf-8"})
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                d = json.load(r)
+            trs = d.get("data", {}).get("translations", [])
+            out = [_html.unescape(t.get("translatedText", texts[i])) for i, t in enumerate(trs)]
+            out += texts[len(out):]
+            return out[:len(texts)]
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                time.sleep(2 * (attempt + 1)); continue
+            # 403 blocked（未开结算/组织策略）、400、401… 只提示一次后彻底降级
+            if not _google_warned:
+                _google_warned = True
+                try:
+                    detail = json.load(e).get("error", {}).get("message", str(e))
+                except Exception:
+                    detail = str(e)
+                print(f"[google] 不可用（HTTP {e.code}），本轮跳过 Google 兜底：{detail}")
+            return texts
+        except Exception:
+            time.sleep(1.5); continue
+    return texts
+
+def translate_batch(texts):
+    """两级引擎：DeepL 主 → 仍未译出（残留中文）的条目交给 Google 兜底。"""
+    texts = list(texts)
+    out = _deepl_call(texts)
+    missing = [i for i, t in enumerate(out) if has_zh(t)]
+    if missing and GOOGLE_KEY:
+        gout = _google_call([texts[i] for i in missing])
+        for j, i in enumerate(missing):
+            if not has_zh(gout[j]):
+                out[i] = gout[j]
+    return out
+
 def api_tr(batch):
-    return _deepl_call(batch)
+    return translate_batch(batch)
 
 def api_one(q):
-    res = _deepl_call([q])
+    res = translate_batch([q])
     return res[0] if res else q
 
 # ---------------- 主流程 ----------------

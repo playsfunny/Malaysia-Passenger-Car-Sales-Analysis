@@ -1,0 +1,59 @@
+name: Build EN launches page
+
+# ZH 源更新后自动生成英文镜像页，产物仍是静态文件（Cloudflare Pages 自动重新部署）。
+# 密钥走 repo secrets（DEEPL_KEY 必填；GOOGLE_API_KEY 可选，用作 DeepL 兜底）。
+on:
+  push:
+    paths:
+      - 'launches.html'
+      - 'make_en_v2.py'
+      - 'check_en_page.py'
+      - '.github/workflows/launches-en.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install deps
+        run: pip install --quiet beautifulsoup4
+
+      # 译文映射缓存：断点续传 + 复用已译条目（省 DeepL 额度）。
+      # 每次运行都保存新缓存，并优先恢复最近一次 → 增量翻译。
+      - name: Restore translation cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/en_map_v2.json
+          key: en-map-${{ github.run_id }}
+          restore-keys: |
+            en-map-
+
+      - name: Build EN page
+        env:
+          DEEPL_KEY: ${{ secrets.DEEPL_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: python make_en_v2.py
+
+      - name: Verify EN page
+        run: python check_en_page.py
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- launches_en.html; then
+            echo "EN 页无变化，跳过提交"
+          else
+            git add launches_en.html
+            git commit -m "chore: 自动重建 launches_en.html（ZH 源更新）"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
