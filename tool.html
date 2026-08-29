@@ -9837,6 +9837,18 @@ function applyLangStatic(){
     if (t != null) el.dataset.tip = t;
   });
 }
+/* V300: 新车速递导航链接跟随语言切换 href，与 index/news 双文件策略一致。
+   落地页 /launches_en 的 data-lang 写死为 en，不依赖 localStorage → 必然英文。 */
+function syncLaunchHref(){
+  try{
+    document.querySelectorAll('.site-nav a').forEach(function(a){
+      var h = a.getAttribute('href');
+      if (h === '/launches' || h === '/launches_en') {
+        a.setAttribute('href', LANG === 'en' ? '/launches_en' : '/launches');
+      }
+    });
+  }catch(e){}
+}
 function setLang(l){
   if (l === LANG) return;
   // preserve year/month + msel checkbox selections across the rebuild
@@ -9854,6 +9866,7 @@ function setLang(l){
   document.querySelectorAll('.site-nav .lang-switch a').forEach(a => a.classList.toggle('on', a.dataset.lang === l));
   applyLangStatic();
   initAll();
+  syncLaunchHref();
   // restore multi-select checkbox state + button labels
   for (const [id, vals] of Object.entries(mselState)) {
     const el = document.getElementById(id); if (!el) continue;
@@ -11268,6 +11281,8 @@ try{
   if(_wbl!==_cur){setLang(_wbl);}
   document.querySelectorAll('.site-nav .lang-switch a').forEach(function(a){a.classList.toggle('on',a.dataset.lang===_wbl);});
 }catch(e){}
+/* V300: 首次进入即按已落定语言修正「新车速递」链接 */
+try{syncLaunchHref();}catch(e){}
 /* V298: 语言已应用完毕 → 显示主体（消除 EN 首屏中文闪现） */
 try{document.documentElement.classList.remove('v298-lang-en');}catch(e){}
 
