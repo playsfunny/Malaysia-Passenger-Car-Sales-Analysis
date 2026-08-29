@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""生成 launches_en.html（v2：手动词典 + 规则 + DeepL 补全）。
-优先级：LOCAL 词典 > en_b1/en_b2 手动 > 规则引擎 > DeepL（zh→en）。
-DeepL key 从同目录 .translate_key 读取（chmod 600，不入库、不回显）。
+"""生成 launches_en.html（v2：手动词典 + 规则 + 在线 API 兜底）。
+
+翻译优先级（前面的命中就不会再往后走，越靠前越省钱）：
+  缓存 .cache/en_map_v2.json > 回采现有 EN 产物 > LOCAL 词典 > en_b1/en_b2 手动
+  > 旧映射 reuse > 规则引擎（术语 + 单位） > 在线 API（DeepL 主 → Google v2 兜底）
+
+在线 API 闸门（TRANSLATE_API，默认 off）：
+  off：绝不调用。若仍有未译条目 → 不写产物、导出清单到 .cache/untranslated.json、退出码 2。
+  ask：交互式确认（本地用；非交互环境视为拒绝）。
+  on ：允许调用。开启方式：TRANSLATE_API=on python make_en_v2.py
+
+密钥：DeepL 存 .translate_key、Google 存 .google_api_key（均 chmod 600，不入库、不回显）；
+      CI 走 repo secrets DEEPL_KEY / GOOGLE_API_KEY。
+代理：沙箱/本机如需走 127.0.0.1:10808，设 GOOGLE_TRANSLATE_PROXY（仅影响 Google）。
 缓存映射存项目内 .cache/（旧 /tmp 位置自动回退并迁移）；支持断点续传。
-路径基于脚本目录推导，可用环境变量覆盖：LAUNCHES_SRC / LAUNCHES_DST / DEEPL_KEY_FILE。
-目标：英文版覆盖 100% 内容（0 残留中文，134 车型章节）。"""
-import re, json, os, time, urllib.parse, urllib.request, urllib.error, threading
+路径基于脚本目录推导，可用环境变量覆盖：LAUNCHES_SRC / LAUNCHES_DST / DEEPL_KEY_FILE。"""
+import re, json, os, sys, time, urllib.parse, urllib.request, urllib.error, threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from bs4 import BeautifulSoup, NavigableString
 
@@ -221,6 +231,53 @@ if not GOOGLE_KEY and os.path.exists(GOOGLE_KEY_FILE):
 # 端点可覆盖（自测/代理场景）；默认官方 v2
 GOOGLE_ENDPOINT = os.environ.get("GOOGLE_TRANSLATE_ENDPOINT",
                                  "https://translation.googleapis.com/language/translate/v2")
+# 可选：显式指定出网代理。CI/服务器直连时留空即可（走标准 http(s)_proxy 或直接出网）；
+# 本地若 HTTPS_PROXY 被上游代理劫持（该代理屏蔽 Google 时 urllib 会 502），
+# 可用 GOOGLE_TRANSLATE_PROXY=http://127.0.0.1:10808 强制走指定出口。
+GOOGLE_PROXY = (os.environ.get("GOOGLE_TRANSLATE_PROXY") or "").strip()
+
+# ---------------- 在线翻译 API 闸门 ----------------
+#   off（默认）：一律不调用在线 API。若仍有未译条目 → 不写产物、导出清单、退出码 2。
+#   ask        ：交互式确认（本地用；CI/非交互环境视为拒绝）。
+#   on         ：允许调用（需显式开启）。
+TRANSLATE_API = (os.environ.get("TRANSLATE_API") or "off").strip().lower()
+
+def _gate_api(todo):
+    """闸门。返回 True=允许调用；False=调用方必须立即退出且不写产物。"""
+    if not todo:
+        return True
+    chars = sum(len(x[1]) for x in todo)
+    if TRANSLATE_API == "on":
+        print(f"[api] 闸门=on，将调用在线翻译：{len(todo)} 条 / {chars} 字符")
+        return True
+    try:
+        with open(os.path.join(CACHE_DIR, "untranslated.json"), "w", encoding="utf-8") as f:
+            json.dump([{"zh": k, "payload": p} for k, p, _ in todo],
+                      f, ensure_ascii=False, indent=1)
+    except Exception as e:
+        print(f"[api] 待译清单导出失败：{e}")
+    if TRANSLATE_API == "ask":
+        try:
+            ans = input(f"[api] 待译 {len(todo)} 条 / {chars} 字符，调用在线翻译？[y/N] ").strip().lower()
+        except EOFError:                      # CI / 非交互环境
+            ans = "n"
+        if ans in ("y", "yes"):
+            print("[api] 已确认，继续调用")
+            return True
+    print("\n❌ 在线翻译 API 已关闭（TRANSLATE_API=off），但仍有未译条目：")
+    print(f"   待译 {len(todo)} 条 / {chars} 字符"
+          f"（约占 DeepL 免费档 50 万/月的 {chars/500000*100:.1f}%）")
+    print("   清单已导出：.cache/untranslated.json —— 人工译好后填入 en_b1/en_b2，重跑即命中")
+    print("   确认要调用时：TRANSLATE_API=on python make_en_v2.py")
+    print("   产物未写入，launches_en.html 保持原样。")
+    return False
+
+def _gopen(req, timeout=30):
+    if GOOGLE_PROXY:
+        opener = urllib.request.build_opener(
+            urllib.request.ProxyHandler({"http": GOOGLE_PROXY, "https": GOOGLE_PROXY}))
+        return opener.open(req, timeout=timeout)
+    return urllib.request.urlopen(req, timeout=timeout)
 _google_warned = False
 # 先试 pro 端点，再回退 free 端点（free 仅 EU IP 可用，非 EU 会 456）
 DEEPL_HOSTS = ["https://api.deepl.com", "https://api-free.deepl.com"]
@@ -275,7 +332,7 @@ def _google_call(texts):
                                  headers={"Content-Type": "application/json; charset=utf-8"})
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(req, timeout=30) as r:
+            with _gopen(req, timeout=30) as r:
                 d = json.load(r)
             trs = d.get("data", {}).get("translations", [])
             out = [_html.unescape(t.get("translatedText", texts[i])) for i, t in enumerate(trs)]
@@ -316,6 +373,94 @@ def api_one(q):
     res = translate_batch([q])
     return res[0] if res else q
 
+# 主导航链接的 EN 化映射。EN 页若仍链 / 或 /news，用户点进去会被入口页
+# 把 wb_lang 落定成 zh，等于把整站语言翻回中文（V299 修的就是这个）。
+# /tool 是单文件双语，保持不变。
+NAV_HREF_EN = {"/": "/index_en", "/index": "/index_en",
+               "/news": "/news_en", "/launches": "/launches_en"}
+
+def fix_body_lang(soup):
+    """EN 页 <body data-lang> 必须写死 en。
+    V300 定稿原则：结果写死在资源本身，不依赖运行时推断。
+    照抄 ZH 源的 data-lang="zh" 会让英文 URL 渲染出中文内容。"""
+    if soup.body is None:
+        return False
+    soup.body["data-lang"] = "en"
+    return True
+
+def fix_nav_hrefs(soup):
+    """主导航链接改指向英文页；语言切换器内的链接必须跳过。"""
+    n = 0
+    for nav in soup.find_all("nav", class_="links"):
+        for a in nav.find_all("a"):
+            if a.find_parent(class_="lang-switch"):
+                continue
+            h = a.get("href")
+            if h in NAV_HREF_EN:
+                a["href"] = NAV_HREF_EN[h]
+                n += 1
+    return n
+
+def fix_lang_switch(soup):
+    """修正 EN 页顶部语言切换器（翻译管线无法处理，必须后处理）。
+
+    ZH 源里 class="on" 落在中文链接上（对 ZH 页正确），照抄到 EN 页会导致：
+      ① EN 页却高亮「中文」；② 「中文」按钮被译成 Chinese，用户切不回中文。
+    这里强制还原为 EN 页应有的形态，并返回是否命中。
+    """
+    box = soup.find(class_="lang-switch")
+    if not box:
+        return False
+    links = box.find_all("a")
+    if len(links) < 2:
+        return False
+    zh_a, en_a = links[0], links[1]
+    zh_a.string = "中文"          # 必须是中文，否则中文用户看不懂切回入口
+    en_a.string = "EN"
+    zh_a["href"] = "/launches"
+    en_a["href"] = "/launches_en"
+    for a in (zh_a, en_a):        # 清掉所有 on，稍后只给 EN 加
+        cls = [c for c in (a.get("class") or []) if c != "on"]
+        if cls:
+            a["class"] = cls
+        elif "class" in a.attrs:
+            del a["class"]        # 不留空 class=""
+    en_a["class"] = (en_a.get("class") or []) + ["on"]
+    return True
+
+def harvest_from_dst(soup):
+    """从已存在的 EN 产物按位回采译文，防止缓存缺失时用机器翻译覆盖人工润色。
+
+    典型场景：CI 首次运行（actions/cache 为空）、或本地 .cache 被清掉。
+    只在文本节点数严格相等时启用——结构一致才敢按位配对，绝不猜。
+    """
+    import os as _os
+    if not _os.path.exists(DST):
+        return {}
+    try:
+        prev = BeautifulSoup(open(DST, encoding="utf-8").read(), "html.parser")
+    except Exception as e:
+        print(f"[harvest] 读取现有 EN 失败，跳过：{e}")
+        return {}
+    cur, old = [], []
+    for s in soup.find_all(string=True):
+        if s.parent.name in ("script", "style"):
+            continue
+        cur.append(str(s).strip())
+    for s in prev.find_all(string=True):
+        if s.parent.name in ("script", "style"):
+            continue
+        old.append(str(s).strip())
+    if len(cur) != len(old):
+        print(f"[harvest] 跳过：结构已变，不敢按位配对"
+              f"（ZH {len(cur)} 节点 / 现有 EN {len(old)} 节点）")
+        return {}
+    out = {}
+    for a, b in zip(cur, old):
+        if a and b and has_zh(a) and not has_zh(b) and a != b:
+            out[a] = b
+    return out
+
 # ---------------- 主流程 ----------------
 def main():
     html = open(SRC, encoding="utf-8").read()
@@ -354,6 +499,14 @@ def main():
                 tr_map[k] = v
         print(f"续传：载入已译 {len(tr_map)} 条")
 
+    # 自愈：缓存缺失时从现有 EN 产物按位回采，避免机器翻译覆盖人工润色
+    # （CI 首跑 actions/cache 为空时若不回采，会把线上已润色过的译法全冲掉）
+    _hv = harvest_from_dst(soup)
+    _hv = {k: v for k, v in _hv.items() if k not in tr_map}
+    if _hv:
+        print(f"[harvest] 从现有 EN 页回采 {len(_hv)} 条既有译文")
+        tr_map.update(_hv)
+
     todo = []  # (key, payload, head_or_None)
     for s in all_strs:
         if s in tr_map:
@@ -378,6 +531,8 @@ def main():
             todo.append((s, s, None))  # MyMemory on original s
 
     print(f"需 MyMemory 翻译: {len(todo)}")
+    if not _gate_api(todo):
+        return 2          # 闸门拦下：不写产物，CI 会红
 
     # 分批：长串(>400)单独，其余每 3 个
     long_items = [x for x in todo if len(x[1]) > 400]
@@ -428,6 +583,13 @@ def main():
             nv = tr_map.get(v.strip(), v)
             tag[attr] = nv
     soup.html["lang"] = "en"
+    n_body = fix_body_lang(soup)
+    n_href = fix_nav_hrefs(soup)
+    n_switch = fix_lang_switch(soup)
+    print(f"[en-ify] body data-lang={'ok' if n_body else 'MISS'} / "
+          f"导航链接改写 {n_href} 条 / 语言切换器={'ok' if n_switch else 'MISS'}")
+    if not (n_body and n_switch):
+        print("[en-ify] 警告：EN 化未全部命中，产物可能仍是中文态")
     title_tag = soup.find("title")
     if title_tag:
         ts = title_tag.get_text().strip()
@@ -448,4 +610,4 @@ def main():
     print("英文版车型章节数:", len(cars))
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main() or 0)

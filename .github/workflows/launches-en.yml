@@ -37,8 +37,13 @@ jobs:
           restore-keys: |
             en-map-
 
+      # 在线翻译 API 闸门：默认关闭（未配置 repo variable 时即 off）。
+      # 有余下未译条目时脚本会直接失败（不写产物），CI 红灯等你处理。
+      # 要临时启用：GitHub → Settings → Secrets and variables → Actions → Variables
+      #   新建变量 TRANSLATE_API = on（用完记得删掉/改回 off）
       - name: Build EN page
         env:
+          TRANSLATE_API: ${{ vars.TRANSLATE_API }}
           DEEPL_KEY: ${{ secrets.DEEPL_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: python make_en_v2.py
