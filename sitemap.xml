@@ -7,7 +7,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/index_en"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/index_en"/>
-    <lastmod>2026-08-22</lastmod>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -16,7 +16,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/index_en"/>
     <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/index_en"/>
-    <lastmod>2026-08-22</lastmod>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -25,7 +25,7 @@
     <loc>https://playsfunny.com/tool</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/tool"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/tool"/>
-    <lastmod>2026-08-22</lastmod>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -35,7 +35,7 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/news"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/news_en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/news_en"/>
-    <lastmod>2026-08-22</lastmod>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -44,7 +44,7 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/news"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/news_en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/news_en"/>
-    <lastmod>2026-08-22</lastmod>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -73,7 +73,7 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/posts/2026-07"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/posts/2026-07_en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/posts/2026-07_en"/>
-    <lastmod>2026-08-22</lastmod>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -82,7 +82,25 @@
     <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/posts/2026-07"/>
     <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/posts/2026-07_en"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/posts/2026-07_en"/>
-    <lastmod>2026-08-22</lastmod>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://playsfunny.com/posts/2026-08</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/posts/2026-08"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/posts/2026-08_en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/posts/2026-08_en"/>
+    <lastmod>2026-09-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://playsfunny.com/posts/2026-08_en</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="https://playsfunny.com/posts/2026-08"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://playsfunny.com/posts/2026-08_en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://playsfunny.com/posts/2026-08_en"/>
+    <lastmod>2026-09-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
