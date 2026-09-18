@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+<script>/*__BUILD__-START*/
+window.__BUILD__={ver:"V344",ts:"2026-09-17T04:54:12",src:"patch_v344.py",prev:"db3be6b1c33528da102033c0edecfb3d",series:"2021-2026"};
+(function(){try{console.log("%c JPJ BUILD %c " + window.__BUILD__.ver + " ",
+  "background:#12386b;color:#fff;border-radius:3px 0 0 3px;padding:2px 6px;font-weight:600",
+  "background:#e8eef7;color:#12386b;border-radius:0 3px 3px 0;padding:2px 6px",
+  window.__BUILD__.ts, "src=" + window.__BUILD__.src, "prev=" + window.__BUILD__.prev);
+}catch(e){}})();
+/*__BUILD__-END*/</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>马来西亚乘用车销量分析工具 2021-2026</title>
@@ -94,6 +102,7 @@ var o=[];var l=Array.isArray(e);for(f=n.s.c;f<=n.e.c;++f)s[f]=ya(f);for(var c=n.
 .leaflet-container {
 	overflow: hidden;
 	}
+.leaflet-container.tiles-off .leaflet-tile-pane{display:none}
 .leaflet-tile,
 .leaflet-marker-icon,
 .leaflet-marker-shadow {
@@ -748,12 +757,74 @@ svg.leaflet-image-layer.leaflet-interactive path {
 //# sourceMappingURL=leaflet.js.map
 </script>
 
+<script>
+/*V322 底图容灾：本地 file:// 打开时 OSM 瓦片会按「使用政策」拒绝服务
+  （osm.wiki/Blocked → 403「Access blocked」），因为 file:// 页面发不出 Referer；
+  线上 playsfunny.com 有 Referer 所以正常。
+  策略：① 按协议挑起始源（file:// 直接跳过 OSM，不浪费 1 次确认）
+        ② 瓦片连续报错就自动降级到下一个源（OSM → CARTO → Esri）
+        ③ 可用源写进 localStorage，下次直接用它
+        ④ 全部不可用 → 隐藏瓦片层，留干净浅底（避免满屏 403 图）
+  只影响底图；卫星层/标注层（Esri）与 geoJSON 覆盖物不受影响。*/
+var JPJ_TILES = [
+  { k:'osm',   u:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', sub:'abc',
+    a:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>', z:19 },
+  /*V326 起始源改 Esri：CARTO 免费版瓦片里烧了「API KEY REQUIRED」水印（见 v322_6_ov_map.png）*/
+  { k:'esri',  u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', sub:null,
+    a:'Tiles &copy; Esri', z:19 },
+  { k:'esritopo', u:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', sub:null,
+    a:'Tiles &copy; Esri', z:19 },
+  { k:'carto', u:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', sub:'abcd',
+    a:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>', z:19 }
+];
+function jpjTileKey(){ return 'jpj.tile2.' + ((typeof location !== 'undefined' && location.protocol === 'file:') ? 'local' : 'web'); }   /*V326 键升版：旧序号已失效*/
+function jpjTileStart(){
+  var fileMode = (typeof location !== 'undefined' && location.protocol === 'file:');
+  var remembered = null;
+  try{ remembered = localStorage.getItem(jpjTileKey()); }catch(e){}
+  if (remembered !== null && JPJ_TILES[+remembered]) return +remembered;
+  return fileMode ? 1 : 0;   /* file:// 下 OSM 必被拒 → 直接从 Esri 起（索引 1）*/
+}
+function jpjBaseTiles(map, opt){
+  opt = opt || {};
+  var wantZ = opt.maxZoom || 19, idx = jpjTileStart(), errs = 0, tries = 0, layer = null;
+  function build(ix){
+    var p = JPJ_TILES[ix];
+    var o = { attribution: p.a, maxZoom: Math.min(wantZ, p.z) };   /* 不设 crossOrigin：瓦片源未必都带 CORS 头，设了反而可能加载失败 */
+    if (p.sub) o.subdomains = p.sub;
+    var l = L.tileLayer(p.u, o);
+    l.on('tileerror', function(){
+      errs++;
+      if (errs < 3) return;
+      errs = 0;
+      if (tries < JPJ_TILES.length - 1){          /* 换下一个源 */
+        tries++;
+        var nx = (ix + 1) % JPJ_TILES.length, old = layer;
+        layer = build(nx); layer.addTo(map);
+        if (layer.bringToBack) { try { layer.bringToBack(); } catch(e){} }
+        if (old) { try { map.removeLayer(old); } catch(e){} }
+        try{ localStorage.setItem(jpjTileKey(), String(nx)); }catch(e){}
+        if (window.console) console.warn('[V322] 底图源切换 -> ' + JPJ_TILES[nx].k);
+      } else {                                    /* 三个源全挂：干净浅底 */
+        try{ map.getContainer().classList.add('tiles-off'); }catch(e){}
+      }
+    });
+    return l;
+  }
+  layer = build(idx);
+  layer.addTo(map);   /*V323 fix：首建这支原先漏了 addTo → 三张地图一个瓦片都不显示*/
+  return layer;
+}
+</script>
+
 <style>
 :root{
   --bg:#F4F2EA; --card:#FFFFFF; --ink:#0B2320; --sub:#5B655F; --line:#D8D2BF;
   --brand:#036B66; --brand2:#00A19A;
   --gold:#C98F1B; --gold-soft:#F3E9D2;
-  --up:#d43030; --down:#1a9e54;
+  /*V337 涨跌色统一为「增长=绿 / 减少=红」（用户确认）：与全站图表主流 #16a34a/#c0444e 对齐，
+    替换原涨红跌绿 #d43030/#1a9e54；.up/.down 类与 mkt KPI 色条/数值经 var 自动跟随*/
+  --up:#16a34a; --down:#c0444e;
   --grid:#E8E4D6; --panel:#FAF9F3; --shadow:0 1px 3px rgba(11,35,32,.08);
   --good:#16a34a; --bad:#c0444e;
   --mono:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
@@ -779,6 +850,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 .micro-tbl th{background:var(--panel);color:var(--sub);font-weight:600}
 .insight{background:linear-gradient(135deg, rgba(3,107,102,.07), rgba(232,169,59,.10));border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:8px;padding:10px 14px;margin:8px 0;font-size:13px;line-height:1.65;color:var(--ink)}
 .insight b{color:var(--brand)}
+.ins-note{font-size:11.5px;color:var(--sub);line-height:1.6;padding:2px 2px 0}
 .hhi-box{display:flex;flex-direction:column;gap:10px;padding:6px 2px}
 .hhi-row{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
 .hhi-metric{display:flex;flex-direction:column;align-items:center;min-width:74px}
@@ -1339,8 +1411,8 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
 .as-badge.korea{background:#E4E0FA;color:#4B3A9E}
 .as-badge.china{background:#FBE0DB;color:#C1502E}
 .as-badge.euro{background:#E4EAF2;color:#2C4A70}
-.as-grow-up{color:#1a7a4a;font-weight:600}
-.as-grow-down{color:#C1502E;font-weight:600}
+.as-grow-up{color:var(--up);font-weight:600}
+.as-grow-down{color:var(--down);font-weight:600}
 .as-est{color:var(--sub);font-size:10px}
 .as-expand{text-align:center;margin-top:12px}
 .as-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;border-bottom:1px solid var(--line)}
@@ -1408,6 +1480,145 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
 .ov-kpi-head .ov-fx-btn:hover{background:var(--brand2)}
 .ov-area-head{display:flex;align-items:center;gap:20px;margin-bottom:3px;height:16px}
 .ov-area-head .ov-area-cmp{font-size:10.5px;color:var(--sub);white-space:nowrap}
+    /*V307CHERY*/
+    #mkt-chery-card .ch-h4{font-size:12.5px;font-weight:700;color:var(--ink);margin:0 0 6px}
+    #mkt-chery-card .ch-block{margin-top:16px}
+    #mkt-chery-card .ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    /*V330 KPI 由 11 → 13 项：列间距 26→20px，中文下保持单行（英文在 V329 起即为两行）*/
+    #mkt-chery-card .ch-kpis{display:flex;flex-wrap:wrap;gap:14px 20px;margin:4px 0 10px}
+    #mkt-chery-card .ch-kpi .k{font-size:10px;color:var(--sub);letter-spacing:.2px}
+    #mkt-chery-card .ch-kpi .v{font-size:16px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.35}
+    #mkt-chery-card .ch-kpi .v small{font-size:11px;font-weight:600;color:var(--sub);margin-left:3px}
+    #mkt-chery-card .ch-insight{font-size:12px;color:var(--ink);line-height:1.8;background:var(--panel);border-left:3px solid var(--brand);border-radius:0 6px 6px 0;padding:9px 13px;margin-top:14px}
+    #mkt-chery-card .ch-note{font-size:11px;color:var(--sub);line-height:1.75;margin-top:10px}
+    /*V309MKR*/
+    #mkt-maker-cards{display:flex;flex-direction:column;gap:16px;margin-top:16px}
+    #mkt-maker-cards .mkmkr-trunc{font-size:11px;color:var(--sub);line-height:1.6;padding:0 2px}
+    /*V309E*/ .ch-h4row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;row-gap:2px}
+    .ch-leg{display:inline-flex;align-items:baseline;gap:14px;white-space:nowrap;font-size:11px;font-weight:400;color:var(--sub)}
+    .ch-leg-i{display:inline-flex;align-items:center;gap:5px}
+    .ch-leg-sw{display:inline-block;width:18px;height:0;border-top:2px solid #000;border-radius:1px;transform:translateY(-2px)}
+    #mkt-maker-cards .ch-h4{font-size:12.5px;font-weight:700;color:var(--ink);margin:0 0 6px}
+    #mkt-maker-cards .ch-block{margin-top:16px}
+    #mkt-maker-cards .ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    #mkt-maker-cards .ch-kpis{display:flex;flex-wrap:wrap;gap:10px 22px;margin:2px 0 6px}
+    #mkt-maker-cards .ch-kpi .k{font-size:10px;color:var(--sub);letter-spacing:.2px}
+    #mkt-maker-cards .ch-kpi .v{font-size:14px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.2}
+    /*V318 纵向空间再分配（基数：卡片 779px / 图A 245px，探针 probe_mkt_space.js）：
+      KPI 行 53→33、eyebrow 19→0（元素已删）、h3 37→31、卡间距 16→10、图B 277→207、
+      洞察+口径折叠 83→~20 → 余量全部给图A（上面板 110→172、下面板 135→236）。*/
+    #mkt-maker-cards .card{margin-bottom:10px}
+    #mkt-maker-cards .card h3{font-size:14px;margin-bottom:8px}
+    /*V330 模块标题徽章：填充色 #FAF9F4（用户指定，取色自其截图）+ 发丝边让圆角矩形可辨；
+      徽章盒左缘与卡片内容左基准对齐（= 下方 KPI 行左缘），文字在盒内内缩*/
+    #mkt-maker-cards .card h3 .mkr-tt{display:inline-block;background:#FAF9F4;border:1px solid var(--line);border-radius:8px;padding:1px 10px;margin:-2px 0 0 0}
+    #mkt-maker-cards .ch-h4row{padding-right:44px}
+    /*V332 图B「同比 YoY」标题行右侧的两个指标（窗口同比 / YTD同比，均为品牌口径）：
+       label 10.5px 与 .ch-kpi .k 同级；value 用 12.5px —— **必须与 .ch-h4 标题同字号**，
+       这样两者由同一套字体度量算出同一行盒（18.75px），左栏标题行才与右栏「环比 MoM」严格等高；
+       实测：value 13px → 左栏 20px、两栏图表顶边错开 1.25px；12.5px + 自然行高 → Δ=0。⛔ 别锁死 line-height。
+       右缘继承 .ch-h4row 的 padding-right:44px，与上方图例同一竖向基准 */
+    #mkt-maker-cards .ch-h4row .ch-bstat,#mkt-chery-card .ch-h4row .ch-bstat{display:flex;gap:16px;align-items:baseline;font-size:10.5px;line-height:normal;color:var(--sub);white-space:nowrap}
+    #mkt-maker-cards .ch-h4row .ch-bstat b,#mkt-chery-card .ch-h4row .ch-bstat b{font-size:12.5px;line-height:normal;font-weight:800;font-variant-numeric:tabular-nums;margin-left:4px}
+    /* 下面板（柱）图例搬进 h4 行后与上面板图例同排，用竖线分隔；色块用方块以示「柱段」*/
+    #mkt-maker-cards .ch-leg-sep{border-left:1px solid var(--line);padding-left:14px;min-height:14px}
+    .ch-leg-sq{display:inline-block;width:10px;height:10px;border-radius:2px;transform:translateY(1px)}
+    /* V321 洞察 / 口径说明**不再折叠**、也不再带标题（原先折叠态只剩标题行 ~17px）*/
+    #mkt-maker-cards .ch-more{margin-top:10px}
+    #mkt-maker-cards .ch-more .ch-insight{margin-top:0}
+    #mkt-maker-cards .ch-more .ch-note{margin-top:6px}
+    #mkt-maker-cards .ch-kpi .v small{font-size:11px;font-weight:600;color:var(--sub);margin-left:3px}
+    /*V335 KPI 方案 B 配色（用户确认）：左 3px 色条跟随涨跌色（涨红/跌绿/中性深蓝 #1F3A5F）+ 浅底 + 右圆角；
+      数值同色 —— 补 .v.up/.v.down 高特异性规则（修复 #id 压过全局 .up/.down 不显色）；
+      集团卡 13 项缩字号（值 17→16 / 标签 10.5→10）+ 内边距 12→10 + 列距 12→10 收敛单行（实测 V334 超宽 24px）*/
+    #mkt-maker-cards .ch-kpi,#mkt-chery-card .ch-kpi{border-left:3px solid #1F3A5F;background:#F6F4ED;border-radius:0 6px 6px 0;padding:5px 10px}
+    #mkt-maker-cards .ch-kpi.b-up,#mkt-chery-card .ch-kpi.b-up{border-left-color:var(--up)}
+    #mkt-maker-cards .ch-kpi.b-dn,#mkt-chery-card .ch-kpi.b-dn{border-left-color:var(--down)}
+    #mkt-maker-cards .ch-kpi .v.up,#mkt-chery-card .ch-kpi .v.up{color:var(--up)}
+    #mkt-maker-cards .ch-kpi .v.down,#mkt-chery-card .ch-kpi .v.down{color:var(--down)}
+    /*V338 集团卡 KPI 同比小字（用户确认示意图）：主数据下 10px 副行；同比/份额同比；涨绿跌红、±0.0 中性灰*/
+    #mkt-maker-cards .ch-kpi .ksub,#mkt-chery-card .ch-kpi .ksub{font-size:10px;line-height:1.3;margin-top:1px;white-space:nowrap}
+    #mkt-maker-cards .ch-kpi .ksub .lb,#mkt-chery-card .ch-kpi .ksub .lb{color:#8a929c;margin-right:2px}
+    #mkt-maker-cards .ch-kpi .ksub .sv,#mkt-chery-card .ch-kpi .ksub .sv{font-weight:600;color:#8a929c}
+    #mkt-maker-cards .ch-kpi .ksub .sv.k-up,#mkt-chery-card .ch-kpi .ksub .sv.k-up{color:var(--up)}
+    #mkt-maker-cards .ch-kpi .ksub .sv.k-dn,#mkt-chery-card .ch-kpi .ksub .sv.k-dn{color:var(--down)}
+    #mkt-maker-cards .ch-kpis{gap:10px 10px}
+    #mkt-chery-card .ch-kpis{gap:10px 10px}
+    #mkt-maker-cards .ch-insight{font-size:12px;color:var(--ink);line-height:1.8;background:var(--panel);border-left:3px solid var(--brand);border-radius:0 6px 6px 0;padding:9px 13px;margin-top:14px}
+    #mkt-maker-cards .ch-note{font-size:11px;color:var(--sub);line-height:1.75;margin-top:10px}
+    @media (max-width:900px){#mkt-maker-cards .ch-grid{grid-template-columns:1fr}}
+
+    @media (max-width:900px){#mkt-chery-card .ch-grid{grid-template-columns:1fr}}
+
+
+/* MMF-V308-CSS-START */
+/* 厂家×车型×燃料 结构模块（分厂家分析 tab 底部） */
+.mmf-grid{display:grid;grid-template-columns:148px 72px 66px 70px 54px 54px minmax(150px,1fr);gap:10px;align-items:center}
+.mmf-head{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--sub);font-weight:600;padding:0 2px 6px;border-bottom:2px solid var(--line)}
+.mmf-row{padding:5px 2px;border-bottom:1px solid #f1f2f4}
+.mmf-row:last-child{border-bottom:none}
+.mmf-name{font-size:12.5px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mmf-num{font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+.mmf-pct{font-size:11.5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--sub)}
+.mmf-sp{font-size:11px;text-align:right;font-variant-numeric:tabular-nums;color:var(--sub);white-space:nowrap}
+.mmf-bar{display:flex;height:16px;border-radius:3px;overflow:hidden;background:#f1f5f9;min-width:2px}
+.mmf-bar>i{display:block;height:100%}
+.mmf-bar>i+i{box-shadow:inset 1px 0 0 rgba(255,255,255,.85)}
+.mmf-chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.fchip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--sub);white-space:nowrap;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:1px 5px}
+.fchip i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.mmf-legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.mmf-legend span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--sub)}
+.mmf-legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.mmf-tbl{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+.mmf-tbl th,.mmf-tbl td{padding:6px 9px;border-bottom:1px solid #EDF1F6;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.mmf-tbl th{background:#F1F5F9;color:#1F3A37;font-weight:600;font-size:11px;border-bottom:2px solid #E2E8F0}
+.mmf-tbl th:first-child,.mmf-tbl td:first-child{text-align:left;font-weight:600;min-width:180px}
+.mmf-tbl td.cell b{font-weight:600;color:var(--ink);display:block}
+.mmf-tbl td.cell s{text-decoration:none;font-size:10.5px;color:var(--sub)}
+.mmf-tbl td.zero{color:#C7CDD4}
+.mmf-tbl tr.tot td{background:#F8FAFC;font-weight:700;border-top:2px solid #E2E8F0}
+.mmf-empty{font-size:12.5px;color:var(--sub);padding:10px 2px}
+.mmf-note{font-size:12px;color:var(--sub);background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:6px;padding:8px 12px;margin-top:10px}
+.mmf-cta{margin-left:auto;font-size:11.5px;color:var(--brand);cursor:pointer;text-decoration:underline;white-space:nowrap}
+.mmf-kpi-v{font-size:19px;font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums}
+.mmf-kpi-l{font-size:11.5px;color:var(--sub);margin-bottom:2px}
+.mmf-kpi-s{font-size:11px;color:var(--sub);margin-top:3px}
+/* 左右布局：车型列表（左）+ 矩阵热力（右），总宽 = 原车型列表全宽 */
+.mmf-split{display:grid;grid-template-columns:minmax(0,1.75fr) minmax(0,1fr);gap:24px;align-items:start}
+.mmf-split .mmf-tbl th:first-child,.mmf-split .mmf-tbl td:first-child{min-width:110px}
+/*V325 车型名叫不超 84px，长名字省略号截断（否则会继续把 11 列表格撑出右栏）*/
+.mmf-split .mmf-tbl td:first-child .mmf-nm{display:block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 厂家近 12 个月走势 + 月平均 + 年度累计 */
+.mmf-trend{display:flex;align-items:stretch;gap:18px;margin:2px 0 12px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.mmf-trend-main{flex:1;min-width:0}
+.mmf-trend-lb{font-size:11px;color:var(--sub);margin-bottom:6px}
+.mmf-trend-chart{display:flex;gap:5px;align-items:flex-end}
+.mmf-tcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.mmf-tcol b{font-size:9.5px;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mmf-tcol i{display:block;width:70%;max-width:30px;background:var(--brand);opacity:.78;border-radius:2px 2px 0 0}
+.mmf-tcol:last-child i{opacity:1;background:#0d4f4a}
+.mmf-tcol s{text-decoration:none;font-size:9px;color:var(--sub);white-space:nowrap}
+/* NEV 占比 12 月折线（叠加在走势柱上方） */
+.mmf-tnev{position:relative;height:58px;margin:14px 0 3px}  /*V318 44→58：纵轴自适应后再放大折线振幅（44px 时可用映射带只有 29px）*/
+.mmf-tnev svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.mmf-tnev-row{display:flex;gap:5px;height:100%}
+.mmf-tnev-row>div{flex:1;position:relative;min-width:0}
+.mmf-tnev-row>div>i{position:absolute;left:50%;width:6px;height:6px;border-radius:50%;background:#B7791F;transform:translate(-50%,50%);box-shadow:0 0 0 2px rgba(255,255,255,.92)}
+.mmf-tnev-row>div>em{position:absolute;left:50%;transform:translateX(-50%);font-size:9px;font-style:normal;font-weight:600;color:#B7791F;white-space:nowrap;font-variant-numeric:tabular-nums;pointer-events:none}
+/* 左右分栏：矩阵紧凑化（缩列宽/缩字体，保证 NEV 列等完整显示） */
+.mmf-split .mmf-tbl{font-size:11.5px}
+.mmf-split .mmf-tbl th{font-size:10px;padding:4px 7px;letter-spacing:0}
+.mmf-split .mmf-tbl td{padding:4px 7px}
+.mmf-split .mmf-tbl td.cell s{font-size:9.5px}
+/*V343 MSRP/车长/销量占比 三列移入左侧 mmf-grid；右矩阵恢复 8 列宽松排版（V322 紧凑 .sp/.sh 规则删除）*/
+.mmf-trend-stats{display:flex;gap:26px;align-items:center;padding-left:18px;border-left:1px solid var(--line)}
+.mmf-trend-stats .lb{font-size:11.5px;color:var(--sub);margin-bottom:3px;white-space:nowrap}
+.mmf-trend-stats b{display:block;font-size:18px;font-weight:650;color:var(--ink);font-variant-numeric:tabular-nums}
+.mmf-trend-stats s{text-decoration:none;font-size:10.5px;color:var(--sub);white-space:nowrap}
+@media (max-width:1100px){ .mmf-split{grid-template-columns:minmax(0,1fr)} .mmf-trend{flex-direction:column} .mmf-trend-stats{padding-left:0;border-left:none} }
+.mmf-scale{font-size:9.5px;color:var(--sub);font-weight:400;margin-left:5px;cursor:help}
+/* MMF-V308-CSS-END */
 </style>
 </head>
 <body>
@@ -1875,6 +2086,9 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
       <div class="chart-box tall"><canvas id="c-mk-deep"></canvas></div>
     </div>
   </div>
+<!-- MMF-V308-HTML-START -->
+<div class="card" id="mmf-root"></div>
+<!-- MMF-V308-HTML-END -->
 </div>
 
 <!-- ============ TAB 3: Model ============ -->
@@ -2449,6 +2663,32 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
     <div class="card"><h3><span data-i18n="mkt.cWater">市场同比拆解（瀑布图）</span><span class="sub" data-i18n="mkt.cWaters">基准期总量 → 各品牌贡献 → 对比期总量</span></h3><div class="chart-box tall"><canvas id="c-mkt-water"></canvas></div></div>
     <div class="card"><h3><span data-i18n="mkt.cCmp">期间对比（分组柱）</span><span class="sub" data-i18n="mkt.cCmps">基准期 vs 对比期 Top12，销量标签上方显示同比%</span></h3><div class="chart-box tall"><canvas id="c-mkt-cmp"></canvas></div></div>
   </div>
+  <!--V307CHERY:START-->
+  <div class="card" id="mkt-chery-card">
+    <span class="eyebrow" data-i18n="mkt.cheryH">CHERY GROUP · 集团 vs 大盘</span>
+    <h3><span data-i18n="mkt.cheryT">Chery 集团（CHERY / O&amp;J / ICAUR）月度销量与市占率走势</span><span class="sub" data-i18n="mkt.cheryS">窗口 = 截至对比期末月的近 12 个月；本区块为固定口径对比，不受上方筛选影响</span></h3>
+    <div class="ch-kpis" id="mkt-chery-kpis"></div>
+    <div class="ch-block">
+      <div class="ch-h4 ch-h4row"><span data-i18n="mkt.cheryA">图 A · 集团市占率走势（上）与三品牌月度堆叠销量（下）</span><span class="ch-leg" id="mkt-chery-aleg" style="padding-right:44px"></span></div>
+      <div style="display:flex;flex-direction:column">
+      <div class="chart-box" style="height:170px"><canvas id="c-mkt-cheryAshr"></canvas></div>
+      <div class="chart-box" style="height:330px"><canvas id="c-mkt-cheryA"></canvas></div>
+    </div>
+    </div>
+    <div class="ch-block">
+      <div class="ch-h4" data-i18n="mkt.cheryB">图 B · 同比 / 环比增速对比（小多倍）</div>
+      <div class="ch-grid">
+        <div><div class="ch-h4 ch-h4row"><span data-i18n="mkt.cheryByoy">同比 YoY（%）</span><span class="ch-bstat" id="mkt-chery-yoy"></span></div><div class="chart-box"><canvas id="c-mkt-cheryB1"></canvas></div></div>
+        <div><div class="ch-h4" data-i18n="mkt.cheryBmom">环比 MoM（%）</div><div class="chart-box"><canvas id="c-mkt-cheryB2"></canvas></div></div>
+      </div>
+    </div>
+    <div class="ch-insight" id="mkt-chery-insight"></div>
+    <div class="ch-note" data-i18n="mkt.cheryN"></div>
+  </div>
+  <!--V307CHERY:END-->
+  <!--V309MKR:START-->
+  <div id="mkt-maker-cards"></div>
+  <!--V309MKR:END-->
 </div>
 
 
@@ -2951,10 +3191,7 @@ function initDealerTab() {
   initMSlicer('dl-ra', [{ v: '1', l: T('dl.raHigh') }, { v: '2', l: T('dl.raMid') }, { v: '3', l: T('dl.raLow') }, { v: '4', l: T('dl.raNone') }], filterDealers);
 
   dealerMap = L.map('dl-map').setView([3.9, 106.0], 6);
-  baseOsm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
-    maxZoom: 18
-  }).addTo(dealerMap);
+  baseOsm = jpjBaseTiles(dealerMap, { maxZoom: 18 });   /*V322 容灾：本地 file:// 下 OSM 会被拒*/
   satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     attribution: 'Imagery &copy; Esri, Maxar, Earthstar Geographics',
     maxZoom: 19
@@ -3894,6 +4131,16 @@ zh: {
   'mkt.nevContribH':'NEV 同比贡献 Top5（对比期 − 基准期 电动销量）',
   'mkt.insightLocal':'对比期非国民品牌份额 <b>{local}%</b>，较基准期 <b>{dLocal} pct</b>',
   'mkt.insightTop':'对比期销量第一品牌 <b>{top}</b>，占 <b>{topPct}%</b>',
+  'mkt.insTrend':'对比期内 NEV 渗透率 <b>{m0} {a}%</b> → <b>{m1} {b}%</b>（{d} pct）',
+  'mkt.insFuel':'动力结构：<b>{f1}</b> 份额 {a1}% → <b>{b1}%</b>（{d1} pct）；<b>{f2}</b> {a2}% → {b2}%（{d2} pct）',
+  'mkt.insGain':'增量最大品牌 <b>{m}</b>：{a} → <b>{b}</b> 辆（{d}），占大盘净增量的 <b>{c}%</b>',
+  'mkt.insGainS':'增量最大品牌 <b>{m}</b>：{a} → <b>{b}</b> 辆（{d}）',
+  'mkt.insLose':'减量最大品牌 <b>{m}</b>：{a} → {b} 辆（{d}）',
+  'mkt.insMix':'车型结构：<b>{s1}</b> 份额 {a1}% → <b>{b1}%</b>（{d1} pct）；<b>{s2}</b> {a2}% → {b2}%（{d2} pct）',
+  'mkt.insConc':'集中度：CR3 {a}% → <b>{b}%</b>（{d} pct），Top3 = {list}',
+  'mkt.insModel':'最畅销车型 <b>{m}</b>（{mk}）{v} 辆，占当期销量 <b>{p}%</b>，较基准期 {d} 辆',
+  'mkt.insModelNew':'最畅销车型易主：<b>{m}</b>（{mk}）{v} 辆，占当期销量 <b>{p}%</b>；基准期第一为 {prev}',
+  'mkt.insBase':'对比期累计 <b>{t}</b> 辆，较基准期 {d}（{p}）',
   'mkt.insightProj':'按对比期月均（{m} 个月，共 {t} 辆）年化外推，全年约 <b>{a}</b> 辆（示意，未含季节性）',
   'mkt.cHeat':'品牌 × 月份 销量热力图（对比期逐月）', 'mkt.cHeats':'行=全品牌合计 + Top12 品牌；列=对比期逐月；每行颜色自基准；含 Type 覆盖与 NEV 占比（基准期 vs 对比期）',
   'mkt.cBox':'分 Maker 价格分布（箱线图，Top10）', 'mkt.cBoxs':'min/Q1/中位/Q3/max 基于车型中位价',
@@ -3902,6 +4149,23 @@ zh: {
   'mkt.cSlope':'品牌排名变化（斜率图）', 'mkt.cSlopes':'左右端点=排名（端点圆内），变化箭头升绿降红',
   'mkt.cWater':'市场同比拆解（瀑布图）', 'mkt.cWaters':'基准期总量 → 各品牌贡献 → 对比期总量',
   'mkt.cCmp':'期间对比（分组柱）', 'mkt.cCmps':'基准期 vs 对比期 Top12，销量标签上方显示同比%',
+  'mkt.cheryH':'CHERY GROUP · 集团 vs 大盘', 'mkt.cheryT':'Chery 集团（CHERY / O&J / ICAUR）月度销量与市占率走势', 'mkt.cheryS':'窗口 = 截至对比期末月的近 12 个月；本区块为固定口径对比，不受上方筛选影响',
+  'mkt.cheryA':'图 A · 集团市占率走势（上）与三品牌月度堆叠销量（下）', 'mkt.cheryB':'图 B · 同比 / 环比增速对比（小多倍）', 'mkt.cheryByoy':'同比 YoY（%）', 'mkt.cheryBmom':'环比 MoM（%）', 
+  'mkt.cheryChery':'CHERY', 'mkt.cheryOJ':'O&J', 'mkt.cheryIcaur':'iCAUR', 'mkt.cheryGrp':'Chery 集团', 'mkt.cheryMkt':'乘用车大盘', 'mkt.cherySuv':'SUV 大盘',
+  'mkt.cheryAxisG':'集团销量（辆）', 'mkt.cheryAxisM':'集团市占率（%）', 'mkt.cheryUnit':'辆', 'mkt.cheryYoyT':'同比 %', 'mkt.cheryMomT':'环比 %', 'mkt.cheryShare':'份额 %',
+  'mkt.cheryShrMkt':'集团占乘用车大盘', 'mkt.cheryShrSuv':'集团占 SUV 大盘', 'mkt.cheryGrpTot':'集团合计', 'mkt.cheryToyota':'Toyota', 'mkt.cheryHonda':'Honda',
+  'mkt.cheryKWinG':'窗口累计 · 集团', 'mkt.cheryKWinM':'窗口累计 · 大盘', 'mkt.cheryKWinS':'窗口累计 · SUV', 'mkt.cheryKYtdG':'YTD · 集团', 'mkt.cheryKYtdM':'YTD · 大盘', 'mkt.cheryKYtdS':'YTD · SUV', 'mkt.cheryKYtdShrM':'YTD · 占大盘', 'mkt.cheryKYtdShrS':'YTD · 占 SUV', 'mkt.cheryKLastG':'最新月 · 集团', 'mkt.cheryKLastYoy':'最新月 · 集团同比', 'mkt.cheryKLastMom':'最新月 · 集团环比', 'mkt.cheryKShrMkt':'最新月 · 占大盘', 'mkt.cheryKShrSuv':'最新月 · 占 SUV', 'mkt.ksubYoy':'同比', 'mkt.ksubShr':'份额同比',
+  'mkt.cheryIns':'窗口 <b>{range}</b>：集团累计 <b>{g}</b> 辆（大盘 {m}、SUV {s}），占乘用车大盘 <b>{sg}%</b>、占 SUV 大盘 <b>{ss}%</b>。最新月 {lm} 集团 <b>{lv}</b> 辆，同比 <b>{ly}</b>、环比 <b>{lq}</b>。',
+  'mkt.cheryN':'口径：CHERY / O&J / ICAUR 按 JPJ 注册口径（含全部燃料与车身类型）；SUV 大盘 = 全市场 SUV 类型合计；乘用车大盘 = 全市场合计。YTD = 最新月所属自然年 1 月至最新月的累计。YTD 占比 = 该年度累计 ÷ 同期大盘（或 SUV 大盘）累计。同比 = 去年同月，环比 = 上月，均按自然月不做工作日调整。',
+  'mkt.mkrS':'窗口 = 截至对比期末月的近 12 个月；固定口径，仅由厂家勾选驱动', 'mkt.mkrA':'图 A · 品牌市占率走势（上）与品牌月度销量（下）', 'mkt.mkrT':'月度销量与市占率走势', 'mkt.mkrYoyWin':'窗口同比', 'mkt.mkrYoyYtd':'YTD同比', 'mkt.mkrB':'图 B · 同比 / 环比增速对比（小多倍：品牌 / 乘用车大盘 / SUV 大盘）',
+  'mkt.mkrShrMkt':'品牌占乘用车大盘', 'mkt.mkrShrSuv':'品牌占 SUV 大盘', 'mkt.mkrNoSuv':'该品牌在售不含 SUV，仅显示乘用车大盘市占率',
+  'mkt.mkrTotal':'厂家总销量', 'mkt.other':'其他', 'mkt.mkrMore':'口径说明与洞察',
+  'mkt.mkrKWinB':'窗口累计 · 品牌', 'mkt.mkrKYtdB':'YTD · 品牌', 'mkt.mkrKLastB':'最新月 · 品牌', 'mkt.mkrKLastYoy':'最新月 · 品牌同比', 'mkt.mkrKLastMom':'最新月 · 品牌环比', 'mkt.mkrKShrMkt':'最新月 · 占大盘', 'mkt.mkrKShrSuv':'最新月 · 占 SUV',
+  'mkt.mkrIns':'窗口 <b>{range}</b>：{m} 累计 <b>{g}</b> 辆（乘用车大盘 {mm}），占乘用车大盘 <b>{sg}%</b>。最新月 {lm} {m} <b>{lv}</b> 辆，同比 <b>{ly}</b>、环比 <b>{lq}</b>。',
+  'mkt.mkrInsSuv':'窗口 <b>{range}</b>：{m} 累计 <b>{g}</b> 辆（乘用车大盘 {mm}、SUV 大盘 {s}），占乘用车大盘 <b>{sg}%</b>、占 SUV 大盘 <b>{ss}%</b>。最新月 {lm} {m} <b>{lv}</b> 辆，同比 <b>{ly}</b>、环比 <b>{lq}</b>。',
+  'mkt.mkrTrunc':'勾选厂家 {t} 个，超过上限，仅显示窗口累计销量前 {n} 个',
+  'mkt.mkrN':'口径：品牌销量按 JPJ 注册口径（含全部燃料与车身类型）；SUV 大盘 = 全市场 SUV 类型合计；乘用车大盘 = 全市场合计。SUV 市占率线仅在该品牌窗口内 SUV 注册量大于 0 时显示。YTD = 最新月所属自然年 1 月至最新月的累计。YTD 占比 = 该年度累计 ÷ 同期大盘（或 SUV 大盘）累计。同比 = 去年同月，环比 = 上月，均按自然月不做工作日调整。',
+
   'mkt.maker':'品牌', 'mkt.rank':'排名', 'mkt.price':'价格', 'mkt.len':'车长', 'mkt.count':'车型数',
   'mkt.models':'车型', 'mkt.max':'最大', 'mkt.med':'中位', 'mkt.min':'最小',
   'mkt.sales':'销量', 'mkt.val':'区间', 'mkt.delta':'变化', 'mkt.cum':'累计占比',
@@ -4093,6 +4357,16 @@ en: {
   'mkt.nevContribH':'NEV YoY Contribution Top5 (compare - base EV sales)',
   'mkt.insightLocal':'Compare-period non-national brand share <b>{local}%</b>, <b>{dLocal} pct</b> vs base period',
   'mkt.insightTop':'Compare-period top-selling brand <b>{top}</b>, <b>{topPct}%</b> share',
+  'mkt.insTrend':'NEV penetration inside compare period: <b>{m0} {a}%</b> &rarr; <b>{m1} {b}%</b> ({d} pct)',
+  'mkt.insFuel':'Powertrain mix: <b>{f1}</b> {a1}% &rarr; <b>{b1}%</b> ({d1} pct); <b>{f2}</b> {a2}% &rarr; {b2}% ({d2} pct)',
+  'mkt.insGain':'Biggest gainer <b>{m}</b>: {a} &rarr; <b>{b}</b> units ({d}), <b>{c}%</b> of the market net change',
+  'mkt.insGainS':'Biggest gainer <b>{m}</b>: {a} &rarr; <b>{b}</b> units ({d})',
+  'mkt.insLose':'Biggest decliner <b>{m}</b>: {a} &rarr; {b} units ({d})',
+  'mkt.insMix':'Body-type mix: <b>{s1}</b> {a1}% &rarr; <b>{b1}%</b> ({d1} pct); <b>{s2}</b> {a2}% &rarr; {b2}% ({d2} pct)',
+  'mkt.insConc':'Concentration: CR3 {a}% &rarr; <b>{b}%</b> ({d} pct), Top3 = {list}',
+  'mkt.insModel':'Best-selling model <b>{m}</b> ({mk}) {v} units, <b>{p}%</b> of period volume, {d} units vs base',
+  'mkt.insModelNew':'Best-seller changed: <b>{m}</b> ({mk}) {v} units, <b>{p}%</b> of period volume; base-period leader was {prev}',
+  'mkt.insBase':'Compare-period total <b>{t}</b> units, {d} ({p}) vs base period',
   'mkt.insightProj':'Annualized projection from compare-period monthly average ({m} months, {t} units total) &asymp; <b>{a}</b> units for the full year (illustrative, excludes seasonality)',
   'mkt.cHeat':'Maker × Month Sales Heatmap (compare period, month by month)', 'mkt.cHeats':'row = all-brand total + Top12 makers; columns = compare-period months; per-row scaling; Type & NEV (base vs compare) columns',
   'mkt.cBox':'Price Distribution by Maker (Box plot, Top10)', 'mkt.cBoxs':'min/Q1/median/Q3/max from model median price',
@@ -4101,6 +4375,23 @@ en: {
   'mkt.cSlope':'Maker Rank Change (Slope)', 'mkt.cSlopes':'endpoints=rank (in dot), arrows green up / red down',
   'mkt.cWater':'Market YoY Decomposition (Waterfall)', 'mkt.cWaters':'base total → per-maker contribution → compare total',
   'mkt.cCmp':'Period Compare (Grouped bars)', 'mkt.cCmps':'base vs compare Top12, YoY% above sales label',
+  'mkt.cheryH':'CHERY GROUP · Group vs Market', 'mkt.cheryT':'Chery Group (CHERY / O&J / ICAUR) Monthly Sales & Market-Share Trend', 'mkt.cheryS':'Window = trailing 12 months ending at the compare-period end month; this block uses a fixed basis and is not affected by the filters above',
+  'mkt.cheryA':'Chart A · Group market share (top) and brand stacked monthly sales (bottom)', 'mkt.cheryB':'Chart B · YoY / MoM growth comparison (small multiples)', 'mkt.cheryByoy':'YoY (%)', 'mkt.cheryBmom':'MoM (%)', 
+  'mkt.cheryChery':'CHERY', 'mkt.cheryOJ':'O&J', 'mkt.cheryIcaur':'iCAUR', 'mkt.cheryGrp':'Chery Group', 'mkt.cheryMkt':'Passenger-car market', 'mkt.cherySuv':'SUV market',
+  'mkt.cheryAxisG':'Group sales (units)', 'mkt.cheryAxisM':'Group market share (%)', 'mkt.cheryUnit':'units', 'mkt.cheryYoyT':'YoY %', 'mkt.cheryMomT':'MoM %', 'mkt.cheryShare':'Share %',
+  'mkt.cheryShrMkt':'Group share of market', 'mkt.cheryShrSuv':'Group share of SUV market', 'mkt.cheryGrpTot':'Group total', 'mkt.cheryToyota':'Toyota', 'mkt.cheryHonda':'Honda',
+  'mkt.cheryKWinG':'Window · Group', 'mkt.cheryKWinM':'Window · Market', 'mkt.cheryKWinS':'Window · SUV', 'mkt.cheryKYtdG':'YTD · Group', 'mkt.cheryKYtdM':'YTD · Market', 'mkt.cheryKYtdS':'YTD · SUV', 'mkt.cheryKYtdShrM':'YTD · of market', 'mkt.cheryKYtdShrS':'YTD · of SUV', 'mkt.cheryKLastG':'Latest · Group', 'mkt.cheryKLastYoy':'Latest · Group YoY', 'mkt.cheryKLastMom':'Latest · Group MoM', 'mkt.cheryKShrMkt':'Latest · of mkt', 'mkt.cheryKShrSuv':'Latest · of SUV', 'mkt.ksubYoy':'YoY', 'mkt.ksubShr':'vs LY',
+  'mkt.cheryIns':'Window <b>{range}</b>: group total <b>{g}</b> units (market {m}, SUV {s}), <b>{sg}%</b> of the passenger-car market and <b>{ss}%</b> of the SUV market. In the latest month <b>{lm}</b> the group sold <b>{lv}</b> units, <b>{ly}</b> YoY and <b>{lq}</b> MoM.',
+  'mkt.cheryN':'Basis: CHERY / O&J / ICAUR from JPJ registrations (all fuels and body types); SUV market = all SUV-type registrations; passenger-car market = all registrations. YTD = cumulative for the calendar year of the latest month (Jan through latest month). YTD share = that total divided by the same-period market (or SUV market) total. YoY = same month last year, MoM = previous month, calendar months without working-day adjustment.',
+  'mkt.mkrS':'Window = trailing 12 months ending at the compare-period end month; fixed basis, driven only by the maker selection', 'mkt.mkrA':'Chart A · Brand market share (top) and brand monthly sales (bottom)', 'mkt.mkrT':'Monthly Sales & Market-Share Trend', 'mkt.mkrYoyWin':'Window YoY', 'mkt.mkrYoyYtd':'YTD YoY', 'mkt.mkrB':'Chart B · YoY / MoM growth comparison (small multiples: brand / passenger-car market / SUV market)',
+  'mkt.mkrShrMkt':'Brand share of market', 'mkt.mkrShrSuv':'Brand share of SUV market', 'mkt.mkrNoSuv':'no SUV on sale for this brand, only the passenger-car market share is shown',
+  'mkt.mkrTotal':'Maker total', 'mkt.other':'Others', 'mkt.mkrMore':'Basis & insight',
+  'mkt.mkrKWinB':'Window · Brand', 'mkt.mkrKYtdB':'YTD · Brand', 'mkt.mkrKLastB':'Latest · Brand', 'mkt.mkrKLastYoy':'Latest · Brand YoY', 'mkt.mkrKLastMom':'Latest · Brand MoM', 'mkt.mkrKShrMkt':'Latest · of mkt', 'mkt.mkrKShrSuv':'Latest · of SUV',
+  'mkt.mkrIns':'Window <b>{range}</b>: {m} total <b>{g}</b> units (passenger-car market {mm}), <b>{sg}%</b> of the passenger-car market. In the latest month <b>{lm}</b> {m} sold <b>{lv}</b> units, <b>{ly}</b> YoY and <b>{lq}</b> MoM.',
+  'mkt.mkrInsSuv':'Window <b>{range}</b>: {m} total <b>{g}</b> units (passenger-car market {mm}, SUV market {s}), <b>{sg}%</b> of the passenger-car market and <b>{ss}%</b> of the SUV market. In the latest month <b>{lm}</b> {m} sold <b>{lv}</b> units, <b>{ly}</b> YoY and <b>{lq}</b> MoM.',
+  'mkt.mkrTrunc':'{t} makers selected; only the top {n} by window total sales are shown',
+  'mkt.mkrN':'Basis: brand sales from JPJ registrations (all fuels and body types); SUV market = all SUV-type registrations; passenger-car market = all registrations. The SUV share line appears only when the brand had SUV registrations within the window. YTD = cumulative for the calendar year of the latest month (Jan through latest month). YTD share = that total divided by the same-period market (or SUV market) total. YoY = same month last year, MoM = previous month, calendar months without working-day adjustment.',
+
   'mkt.maker':'Maker', 'mkt.rank':'Rank', 'mkt.price':'Price', 'mkt.len':'Length', 'mkt.count':'Models',
   'mkt.models':'models', 'mkt.max':'Max', 'mkt.med':'Median', 'mkt.min':'Min',
   'mkt.sales':'Sales', 'mkt.val':'Range', 'mkt.delta':'Change', 'mkt.cum':'Cumulative',
@@ -4390,10 +4681,13 @@ function initDimSlicer(id, dim, labelFn, onChange, itemsOverride) {
   // 厂家筛选默认按本年度累计销量排名、前 15 + 更多（V75）
   const isMaker = dim === 'maker';
   // V90 fix: updateMakerSlicer 传入的 itemsOverride 已是 [{v, l}] 对象数组，不可再按索引重查 DICT
-  const items = itemsOverride && itemsOverride.length && typeof itemsOverride[0] === 'object' && 'v' in itemsOverride[0]
+  const _rawItems = itemsOverride && itemsOverride.length && typeof itemsOverride[0] === 'object' && 'v' in itemsOverride[0]
     ? itemsOverride
     : ((isMaker && ORDER.makerTop ? ORDER.makerTop : (ORDER[dim]||DICT[dim].map((_,i)=>i)))
        .map(i=>({v:i, l:labelFn(DICT[dim][i])})));
+  /*V312 同名去重：品牌归一后 DICT.maker 可能有两项都叫 'BMW'，索引保留但选择器只列一次*/
+  const _seenLbl = new Set();
+  const items = _rawItems.filter(it => { if (_seenLbl.has(it.l)) return false; _seenLbl.add(it.l); return true; });
   const maxItems = isMaker ? 15 : undefined; // 厂家默认折叠前 15 个，「更多」展开
   initMSlicer(id, items, onChange, maxItems);
 }
@@ -4405,7 +4699,15 @@ Chart.defaults.set('plugins.datalabels', {display:false});
 
 // ---------- derived lookup maps (rebuilt on data refresh) ----------
 let allYms, byCat, ymTotals, years, DICT, CUBE, CUBE_M, CUBE_MD, MODEL_MAKER, MCTR, ORDER, MODEL_PRICE, MODEL_LENGTH, MODEL_TYPE, LAST12, L12IDX;
+/*V312 品牌别名：源数据里同一实体的拼写不一致，厂家级把它们当成了两个品牌 */
+const MAKER_ALIAS = {'Bmw':'BMW', 'Mclaren':'McLaren'};
 function buildDerived() {
+  /*V312 品牌拼写归一：byCat 与排名用的 acc 都按名字聚合，归一后同名自动合并
+    （源数据里 4 台车登记为「Bmw」，此前被当成独立品牌，故榜单尾部出现「Bmw 1 台」）*/
+  if (DATA.maker) for (let i = 0; i < DATA.maker.length; i++) {
+    const al = MAKER_ALIAS[DATA.maker[i][1]];
+    if (al) DATA.maker[i][1] = al;
+  }
   allYms = new Set();
   byCat = {};
   for (const cat of ['maker','type','fuel','model','colour']) {
@@ -4423,6 +4725,9 @@ function buildDerived() {
     ymTotals.set(ym, t);
   }
   DICT = DATA.dict;
+  /*V312 品牌字典同步归一。索引保持不变（cube / model_maker / maker_country 无需重映射），
+    归一后可能出现两个同名条目，由 initDimSlicer 按 label 去重。*/
+  if (DICT.maker) DICT.maker = DICT.maker.map(n => MAKER_ALIAS[n] || n);
   CUBE = DATA.cube;           // [ym, maker_i, type_i, fuel_i, colour_i, n]
   CUBE_M = DATA.cube_models;  // [ym, type_i, fuel_i, colour_i, distinct_models]
   CUBE_MD = DATA.cube_md || []; // [ym, model_i, type_i, fuel_i, colour_i, n]
@@ -4608,6 +4913,7 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
       const ch = charts[id];
       if (ch && ch.canvas && ch.canvas.closest('.panel.active')) ch.resize();
     }
+    repinTheads();   /*V312 面板可见后重测表头高度，合计行才能正确落在表头下方*/
     // MAA tab: re-extract Data.xls on every activation (falls back to embedded data silently)
     if (t.dataset.tab === 'maa') refreshMaa(true);
     // bubble tab: charts created while the panel was hidden keep 0 size -> re-render at visible size
@@ -4722,9 +5028,7 @@ function initTrafficMap(){
   if(!el) return;
   if(!ovTrafficMap){
     ovTrafficMap = L.map(el, {scrollWheelZoom:false}).setView([3.9, 105.5], 4.7);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom:10, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(ovTrafficMap);
+    jpjBaseTiles(ovTrafficMap, { maxZoom: 10 });   /*V322 容灾*/
     const ls = {
       road:{color:'#036B66', weight:2.4, opacity:.9},
       rail:{color:'#C98F1B', weight:2, dashArray:'7,6', opacity:.9},
@@ -5785,9 +6089,7 @@ function initOverviewTab(){
   if(!ovMap){
     ovMap = L.map('ov-map', {scrollWheelZoom:false}).fitBounds([[1,99],[8,119]], {padding:[20,20]});
     ovMap.zoomControl.setPosition('topright');
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom:18, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(ovMap);
+    jpjBaseTiles(ovMap, { maxZoom: 18 });   /*V322 容灾*/
     ovMarkerLayer = L.layerGroup().addTo(ovMap);
   } else {
     ovMap.invalidateSize();
@@ -6642,7 +6944,8 @@ function renderDash(){
   }
 
   // maker table: # | Maker | type覆盖 | 今年销量 | 去年同期销量 | 同比变化 | 在售车型数量 | 单车型平均销量 | 今年份额 | 份额变化
-  const rows = mk.map(([name,n],i)=>{
+  const mkShown = mk.slice(0,50);   /*V312 分 Maker 销量明细只显示前 50 名*/
+  const rows = mkShown.map(([name,n],i)=>{
     const mki = mkIdx.get(name);
     const cnt = mkModels.get(mki) ? mkModels.get(mki).size : 0;
     const tys = mkTypes.has(mki)
@@ -6659,7 +6962,7 @@ function renderDash(){
   let mkTotalRow = '';
   if (mk.length) {
     let sCur = 0, sPrev = 0, sCnt = 0;
-    for (const [name, n] of mk) {
+    for (const [name, n] of mkShown) {   /*V312 合计行只合计列出的前 50 行*/
       sCur += n; sPrev += mAccPrev.get(name) || 0;
       const mki = mkIdx.get(name);
       sCnt += (mkModels.get(mki) ? mkModels.get(mki).size : 0);
@@ -6916,7 +7219,7 @@ function toggleSuvBubbleExpand(){
   pts.forEach(function(p, i){
     var yoy = p.growth*100;
     var yoyTxt = (yoy>=0?'+':'') + yoy.toFixed(1) + '%';
-    var yoyColor = yoy>=0?'#c0392b':'#1a7f4b';
+    var yoyColor = yoy>=0?'#16a34a':'#c0444e';
     html += '<tr>'
       + '<td style="padding:4px 8px;text-align:center;border-bottom:1px solid #f1f5f9">'+(i+1)+'</td>'
       + '<td style="padding:4px 8px;border-bottom:1px solid #f1f5f9"><b>'+p.n+'</b></td>'
@@ -6943,7 +7246,7 @@ function toggleSuvBubbleExpand(){
       var yoy = f.b0 > 0 ? ((f.v - f.b0) / f.b0 * 100) : null;
       var yoyTxt = yoy === null
         ? '<span style="color:#94A3B8">'+(LANG==='en'?'New':'全新')+'</span>'
-        : '<span style="color:'+(yoy>=0?'#c0392b':'#1a7f4b')+'">'+(yoy>=0?'+':'')+yoy.toFixed(0)+'%</span>';
+        : '<span style="color:'+(yoy>=0?'#16a34a':'#c0444e')+'">'+(yoy>=0?'+':'')+yoy.toFixed(0)+'%</span>';
       html += '<tr>'
         + '<td style="padding:4px 8px;text-align:center;border-bottom:1px solid #f1f5f9">'+(i+1)+'</td>'
         + '<td style="padding:4px 8px;border-bottom:1px solid #f1f5f9"><b>'+f.n+'</b></td>'
@@ -7075,7 +7378,7 @@ function renderSuvBubble(){
           const yoy = f.b0 > 0 ? ((f.v - f.b0) / f.b0 * 100) : null;
           const yoyTxt = yoy === null
             ? `<span style="color:#94A3B8">${LANG==='en'?'New':'全新'}</span>`
-            : `<span class="${yoy>=0?'up':'down'}" style="color:${yoy>=0?'#c0392b':'#1a7f4b'}">${yoy>=0?'+':''}${yoy.toFixed(0)}%</span>`;
+            : `<span class="${yoy>=0?'up':'down'}" style="color:${yoy>=0?'#16a34a':'#c0444e'}">${yoy>=0?'+':''}${yoy.toFixed(0)}%</span>`;
           return `<tr>
 <td style="padding:4px 8px;border-bottom:1px solid #f1f5f9">${f.n}</td>
 <td style="padding:4px 8px;text-align:right;border-bottom:1px solid #f1f5f9"><b>${f.v.toLocaleString()}</b></td>
@@ -7227,8 +7530,15 @@ function rankChgCell(r){
 function pinThead(elId){
   const tbl = document.getElementById(elId);
   const hr = tbl && tbl.querySelector('thead tr');
-  if (hr) tbl.style.setProperty('--theadH', hr.offsetHeight + 'px');
+  if (!hr) return;
+  const h = hr.offsetHeight;
+  /*V312 表格在 display:none 的面板里渲染时 offsetHeight=0，写成 0px 会让合计行
+    的 sticky top 变成 0 与表头完全重叠（实测命中测试 5/5 全是 TD）→ 列标题被盖住。
+    测不到就保留 CSS 兜底值 34px，等面板可见时由 repinTheads() 重测。*/
+  if (h > 0) tbl.style.setProperty('--theadH', h + 'px');
 }
+/*V312 面板可见后重测所有表格的表头高度（合计行的 sticky top 依赖它）*/
+function repinTheads(){ document.querySelectorAll('table[id]').forEach(t => pinThead(t.id)); }
 
 // extra: optional {header, get(r)} column inserted right after the name column (e.g. 在售车型数)
 function renderRankTable(elId, rank, rows, label, extra) {
@@ -7318,8 +7628,8 @@ function renderShareCombo(canvasId, rows, label) {
   const barColors = label === 'Fuel'
     ? top.map(r=>fuelColor(r.name)+'cc')
     : top.map((_,i)=> 'rgba(15,76,129,' + Math.max(0.28, 1 - i*0.048).toFixed(2) + ')');
-  const bp = top.length>=14 ? 0.9 : 0.95;
-  const cp = top.length>=14 ? 0.9 : 0.95;
+  // NOTE(V307): 原 bp/cp 柱宽配置误置于 x 轴 scales 内、被 Chart.js 忽略，已移除；
+  // 如确需收窄柱宽，请在 datasets[0] 上设置 barPercentage / categoryPercentage。
   const maxShare = Math.max(1, ...top.map(r=>shareOf(r)));
   // ---- V86 刻度：主坐标上限 ×1.20 → 比最大柱值大 20%，柱顶预留 20% 顶部空白；
   //      份额刻度上限 ×1.05（< 主坐标留白 1.08）→ 份额线漂浮于所有柱顶之上、与柱无交集 ----
@@ -7401,7 +7711,7 @@ function renderShareCombo(canvasId, rows, label) {
       scales:{
         y:{beginAtZero:true, suggestedMax: maxBar * SALES_MAX_F, position:'left', grid:{color:'#EEF2F7'}, ticks:{callback:v=>fmtK(v)}, title:{display:true,text:T('chart.sales'),font:{size:11}}},
         y2:{beginAtZero:true, suggestedMax: maxShare * SHARE_MAX_F, position:'right', grid:{drawOnChartArea:false}, ticks:{callback:v=>v+'%'}, title:{display:true,text:T('chart.share'),font:{size:11}}},
-        x:{grid:{display:false}, ticks:{maxRotation:0,minRotation:0,autoSkip:false,font:{size:10}}, barPercentage:bp, categoryPercentage:cp}}}
+        x:{grid:{display:false}, ticks:{maxRotation:0,minRotation:0,autoSkip:false,font:{size:10}}, }}}
   });
 }
 
@@ -7758,9 +8068,9 @@ function renderAnalysis(prefix){
   const lblA = formatYm(ymA[0],ymA[1]), lblB = formatYm(ymB[0],ymB[1]);
   document.getElementById(prefix+'-hint').textContent =
     `${T('hint.cur')}：${lblB} · ${T('hint.prev')}：${lblA}` + (active ? ` · ${T('hint.filter')}：${active}` : '') + (priceActive ? ` · ${priceActive}` : '');
-  document.getElementById(prefix+'-sub').textContent = LANG === 'en'
+  document.getElementById(prefix+'-sub').textContent = (LANG === 'en'
     ? `(${lblA} – ${lblB}, ranked by period sales; rank columns are system-time ${t.rank.sysPrevY}/${t.rank.sysY} YTD (Jan–${MONTH_EN[t.rank.sysM-1]}) ranks)`
-    : `（${lblA} - ${lblB}，按本期销量排名；排名列为系统时间 ${t.rank.sysPrevY}/${t.rank.sysY} 年 1-${t.rank.sysM} 月累计排名）`;
+    : `（${lblA} - ${lblB}，按本期销量排名；排名列为系统时间 ${t.rank.sysPrevY}/${t.rank.sysY} 年 1-${t.rank.sysM} 月累计排名）`) + (prefix === 'mk' ? ' · Top 50' : '');
 
   if (prefix === 'md') {
     applyModelFilter();
@@ -7774,7 +8084,8 @@ function renderAnalysis(prefix){
         t.filtered = t.rank.rows.filter(r=>mkSet.has(r.name));
       }
       t.modelCounts = countModelsPerMaker(ymB[0], ymB[1], filt);
-      renderRankTable(`t-${prefix}-rank`, t.rank, t.filtered, t.label,
+      /*V312 厂家排名只显示前 50 名（t.filtered 保持全量，供 buildSelectors 生成完整厂家选择器）*/
+      renderRankTable(`t-${prefix}-rank`, t.rank, t.filtered.slice(0,50), t.label,
         {header:T('tbl.models'), get:r=>t.modelCounts.get(r.name)||0});
     } else {
       renderRankTable(`t-${prefix}-rank`, t.rank, t.filtered, t.label);
@@ -7892,7 +8203,9 @@ function getAllowedModels(cySel, mkSel){
 // Rebuild a maker slicer so it only shows makers from the selected countries.
 function updateMakerSlicer(id, cySel, onChange){
   const allowed = getAllowedMakers(cySel);
-  const order = ORDER.maker || DICT.maker.map((_,i)=>i);
+  /*V337 厂家下拉按本年度累计销量降序（ORDER.makerTop，V75 口径）；原先用 ORDER.maker
+    （2021 起全周期累计）导致下拉与排名表不一致——mk/t/cl/fl/dash 等全部 maker slicer 均经此处，单点修复*/
+  const order = ORDER.makerTop || ORDER.maker || DICT.maker.map((_,i)=>i);
   const prev = new Set(mslicerVals(id));
   const items = (allowed ? order.filter(i=>allowed.has(i)) : order).map(i=>({v:i, l:DICT.maker[i]}));
   initDimSlicer(id, 'maker', x=>x, onChange, items);
@@ -8061,9 +8374,6 @@ function renderCbChart(){
       responsive:true,
       maintainAspectRatio:false,
       animation:false,
-      barPercentage:0.95,
-      categoryPercentage:0.95,
-      maxBarThickness:56,
       plugins:{
         legend:{position:'top',labels:{usePointStyle:true,padding:14}},
         tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.parsed.x)} ${T('unit')}`}},
@@ -8814,7 +9124,7 @@ const SmartBubbleLabels = {
     const area = chart.chartArea;
     if (!area) return;
     const meta = chart.getDatasetMeta(0);
-    const els = meta.data, pts = chart.data.datasets[0].data;
+    const els = meta.data, pts = (chart.data.datasets && chart.data.datasets[0] && chart.data.datasets[0].data) || []; // V308 fix: datasets 可能为空（空图也走 afterDatasetsDraw）
     const n = Math.min(els.length, pts.length);
     if (!n) return;
     const FONT = "-apple-system,'PingFang SC','Microsoft YaHei',sans-serif";
@@ -9328,7 +9638,7 @@ const maaBar = (id, pairs, total) => {
       plugins:{legend:{display:false},
         tooltip:{callbacks:{label:c=>fmt(c.parsed.x)+` ${T('unit')} (`+(total>0?(c.parsed.x/total*100).toFixed(1):'0')+'%)'}},
         datalabels:{display:true, anchor:'end', align:'right', clip:false, color:'#374151', font:{size:10,weight:'600'}, formatter:v=>fmt(v)}},
-      scales:{x:{beginAtZero:true,ticks:{callback:v=>fmtK(v),padding:0},grid:{display:false}},y:{grid:{display:false},ticks:{padding:0}},barPercentage:0.95,categoryPercentage:0.96}}
+      scales:{x:{beginAtZero:true,ticks:{callback:v=>fmtK(v),padding:0},grid:{display:false}},y:{grid:{display:false},ticks:{padding:0}}}}
   });
 };
 
@@ -10981,10 +11291,14 @@ function mktPeriodStats(ym1,ym2){
   const bevIdx=DICT.fuel.indexOf('BEV Electric');
   const ok=(mi,ti,fi,ci)=>inSel(mSel,mi)&&inSel(tSel,ti)&&inFuelSel(fSel,fi)&&inSel(cSel,ci)&&inCtrySel(cySel,mi);
   let tot=0,nev=0,local=0,bev=0; const mkTot=new Map();
+  /*V322 自动洞察 2.0 需要：整份厂家表（品牌增减量）/ 燃料维（动力替代）/ 逐月 NEV（期内轨迹）*/
+  const byFuel={}, nevYm=new Map();
   const byType={SEDAN:{tot:0,nev:0,local:0,bev:0},SUV:{tot:0,nev:0,local:0,bev:0},MPV:{tot:0,nev:0,local:0,bev:0}};
   const tkey=ti=>((DICT.type[ti]||'').toUpperCase());
-  const acc=(mi,ti,fi,ci,n)=>{
+  const acc=(ym,mi,ti,fi,ci,n)=>{
     tot+=n; if(NEV_FUELS.has(fi)) nev+=n; if(fi===bevIdx) bev+=n; if(MCTR[mi]===localIdx) local+=n; mkTot.set(mi,(mkTot.get(mi)||0)+n);
+    byFuel[fi]=(byFuel[fi]||0)+n;
+    let _yb=nevYm.get(ym); if(!_yb) nevYm.set(ym, _yb={tot:0,nev:0}); _yb.tot+=n; if(NEV_FUELS.has(fi)) _yb.nev+=n;
     const tk=tkey(ti); if(byType[tk]){ byType[tk].tot+=n; if(NEV_FUELS.has(fi)) byType[tk].nev+=n; if(fi===bevIdx) byType[tk].bev+=n; if(MCTR[mi]===localIdx) byType[tk].local+=n; }
   };
   if(prSel.length>0){
@@ -10992,36 +11306,162 @@ function mktPeriodStats(ym1,ym2){
       if(ym<ym1||ym>ym2||!priceMatches(mdi,prSel)) continue;
       const mi=MODEL_MAKER[mdi]; if(mi===undefined) continue;
       if(!ok(mi,ti,fi,ci)) continue;
-      acc(mi,ti,fi,ci,n);
+      acc(ym,mi,ti,fi,ci,n);
     }
   } else {
     for(const [ym,mi,ti,fi,ci,n] of CUBE){
       if(ym<ym1||ym>ym2) continue;
       if(!ok(mi,ti,fi,ci)) continue;
-      acc(mi,ti,fi,ci,n);
+      acc(ym,mi,ti,fi,ci,n);
     }
   }
   const makers=[...mkTot.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5).map(([mi,v])=>({name:DICT.maker[mi],v,share:tot>0?v/tot*100:0}));
-  return {tot, nevPct: tot>0?nev/tot*100:0, localPct: tot>0?local/tot*100:0, nonLocalPct: tot>0?(tot-local)/tot*100:0, bevPct: tot>0?bev/tot*100:0, byType, makers};
+  return {tot, nevPct: tot>0?nev/tot*100:0, localPct: tot>0?local/tot*100:0, nonLocalPct: tot>0?(tot-local)/tot*100:0, bevPct: tot>0?bev/tot*100:0, byType, makers,
+          byFuel, makerMap: mkTot, nevYm};
 }
-function renderMktInsights(sA,sB,ymB1,ymB2){
-  const el=document.getElementById('mkt-insights'); if(!el) return;
-  const dNev=(sB.nevPct-sA.nevPct), dLocal=(sB.nonLocalPct-sA.nonLocalPct), dBev=(sB.bevPct-sA.bevPct);
-  const top=sB.makers[0], topA=sA.makers[0];
-  const arrow=v=>(v>=0?'+':'')+v.toFixed(1);
-  const monthsB = (typeof YM_SORTED!=='undefined'&&YM_SORTED.length)? YM_SORTED.filter(y=>y>=ymB1&&y<=ymB2).length : 0;
-  let projLine='';
-  if(monthsB>0 && monthsB<=12){
-    const annual = sB.tot/monthsB*12;
-    projLine = `<div class="insight">${T('mkt.insightProj').replace('{m}',monthsB).replace('{t}',fmt(sB.tot)).replace('{a}',fmt(Math.round(annual)))}</div>`;
+/* ===== V322 自动洞察 2.0 =====
+   旧版 = 固定 4 句模板（渗透率 / 非国民份额 / 第一品牌 / 年化外推），**每句都没有显著性门槛**：
+   指标一旦退化（非国民份额 100.0%、Δ +0.0 pct）或本身信息量低（「销量第一品牌 = Toyota」、
+   把口径说明当年化外推）也照样输出 → 4 条里 3 条是废话。
+   新版 = 候选池（9 类）→ 显著性门槛（份额 Δ < 0.3 pct 不出 / 退化份额不出）→ 打分排序 →
+   只取 Top4；口径说明（年化外推）从「洞察」降级为脚注。*/
+function mktModelBoard(ymA1,ymA2,ymB1,ymB2){
+  const tSel=mslicerVals('mkt-type'), fSel=mslicerVals('mkt-fuel'),
+        cSel=mslicerVals('mkt-colour'), cySel=mslicerVals('mkt-country'),
+        mSel=mslicerVals('mkt-maker'), prSel=priceSlicerVals('mkt-price');
+  const A=new Map(), B=new Map();
+  for(const [ym,mdi,ti,fi,ci,n] of CUBE_MD){
+    if(n<=0) continue;
+    let tgt=null;
+    if(ym>=ymB1&&ym<=ymB2) tgt=B; else if(ym>=ymA1&&ym<=ymA2) tgt=A; else continue;
+    const mi=MODEL_MAKER[mdi]; if(mi===undefined) continue;
+    if(!inSel(mSel,mi)||!inSel(tSel,ti)||!inFuelSel(fSel,fi)||!inSel(cSel,ci)||!inCtrySel(cySel,mi)) continue;
+    if(prSel.length>0 && !priceMatches(mdi,prSel)) continue;
+    tgt.set(mdi,(tgt.get(mdi)||0)+n);
   }
-  const items=[
-    `<div class="insight">${T('mkt.insightNev').replace('{nev}',sB.nevPct.toFixed(1)).replace('{dNev}',arrow(dNev)).replace('{bev}',sB.bevPct.toFixed(1)).replace('{dBev}',arrow(dBev))}</div>`,
-    `<div class="insight">${T('mkt.insightLocal').replace('{local}',sB.nonLocalPct.toFixed(1)).replace('{dLocal}',arrow(dLocal))}</div>`,
-    `<div class="insight">${T('mkt.insightTop').replace('{top}',top?top.name:'-').replace('{topPct}',top?top.share.toFixed(1):'0').replace('{topA}',topA&&topA.name!==(top&&top.name)?(topA?topA.name:'-'):'')}</div>`,
-    projLine
-  ].filter(Boolean);
-  el.innerHTML=items.join('');
+  const argmax=mp=>{ let best=null; mp.forEach((v,k)=>{ if(!best||v>best.v) best={mdi:k,v}; }); return best; };
+  return {A,B,topA:argmax(A),topB:argmax(B)};
+}
+function renderMktInsights(sA,sB,ymA1,ymA2,ymB1,ymB2){
+  const el=document.getElementById('mkt-insights'); if(!el) return;
+  const n1=v=>(Math.round(v*10)/10).toFixed(1);
+  const sd=v=>(v>=0?'+':'')+n1(v);
+  const fsh=f=>String(DICT.fuel[f]||'').split(' ')[0];
+  const R=(key,map)=>{ let s=T(key); for(const k in map) s=s.replace('{'+k+'}',map[k]); return s; };
+  const ic=html=>'<div class="insight">'+html+'</div>';
+  const cand=[];
+  const P=(tag,score,html)=>{ if(html) cand.push({tag,score,html}); };
+  const byFuelA=sA.byFuel||{}, byFuelB=sB.byFuel||{};
+  const mkA=sA.makerMap||new Map(), mkB=sB.makerMap||new Map();
+
+  /* ① 电动化渗透率 —— 信息密度最高，恒优先 */
+  if(sB.tot>0){
+    const dNev=sB.nevPct-sA.nevPct, dBev=sB.bevPct-sA.bevPct;
+    P('nev', 1000+Math.min(300,Math.abs(dNev)*12),
+      ic(R('mkt.insightNev',{nev:n1(sB.nevPct),dNev:sd(dNev),bev:n1(sB.bevPct),dBev:sd(dBev)})));
+  }
+  /* ② 对比期内的渗透率轨迹：只有真的动了 ≥0.5 pct 才说 */
+  const bm=[...((sB.nevYm)||new Map()).entries()].filter(e=>e[1].tot>0).sort((a,b)=>a[0]-b[0]);
+  if(bm.length>=3){
+    const f0=bm[0], l0=bm[bm.length-1];
+    const p0=f0[1].nev/f0[1].tot*100, p1=l0[1].nev/l0[1].tot*100, d=p1-p0;
+    if(Math.abs(d)>=0.5){
+      P('nevtr', 820+Math.min(200,Math.abs(d)*14),
+        ic(R('mkt.insTrend',{m0:ymShort(f0[0]),a:n1(p0),m1:ymShort(l0[0]),b:n1(p1),d:sd(d)})));
+    }
+  }
+  /* ③ 动力结构：涨幅最大 / 跌幅最大的燃料（退化份额不出） */
+  if(sA.tot>0 && sB.tot>0){
+    const fd=[];
+    const allF=new Set([].concat(Object.keys(byFuelA),Object.keys(byFuelB)));
+    allF.forEach(fi=>{
+      const a=(byFuelA[fi]||0)/sA.tot*100, b=(byFuelB[fi]||0)/sB.tot*100;
+      fd.push({fi:+fi,a:a,b:b,d:b-a});
+    });
+    fd.sort((x,y)=>y.d-x.d);
+    const g=fd[0], l=fd[fd.length-1];
+    if(g && l && g.fi!==l.fi && Math.abs(g.d)>=0.3 && !(g.a<0.5 && g.b<0.5)){
+      P('fuel', 700+Math.min(200,Math.abs(g.d)*14),
+        ic(R('mkt.insFuel',{f1:fsh(g.fi),a1:n1(g.a),b1:n1(g.b),d1:sd(g.d),
+                            f2:fsh(l.fi),a2:n1(l.a),b2:n1(l.b),d2:sd(l.d)})));
+    }
+  }
+  /* ④ 品牌增量 / 减量：门槛随大盘净变化缩放，避免「+12 辆」这种噪声 */
+  const totD=sB.tot-sA.tot;
+  const md=[];
+  new Set([].concat([...mkA.keys()],[...mkB.keys()])).forEach(mi=>{
+    const a=mkA.get(mi)||0, b=mkB.get(mi)||0; md.push({mi:+mi,a:a,b:b,d:b-a});
+  });
+  md.sort((x,y)=>y.d-x.d);
+  const mg=md[0], ml=md[md.length-1];
+  const gainNeed=Math.max(300, Math.abs(totD)*0.15);
+  if(mg && mg.d>=gainNeed){
+    const cRaw=totD>0?mg.d/totD*100:0;
+    const c=(totD>0 && cRaw<=150)?Math.round(cRaw):null;   /*V324 占比 >150% 时（龙头下滑）不带这句*/
+    P('gain', 760+Math.min(160,mg.d/60),
+      ic(c!=null ? R('mkt.insGain',{m:DICT.maker[mg.mi],a:fmt(mg.a),b:fmt(mg.b),d:'+'+fmt(mg.d),c:c})
+                 : R('mkt.insGainS',{m:DICT.maker[mg.mi],a:fmt(mg.a),b:fmt(mg.b),d:'+'+fmt(mg.d)})));
+  }
+  if(ml && ml.d<0 && -ml.d>=Math.max(300,-totD*0.15)){
+    P('lose', 620+Math.min(160,-ml.d/60),
+      ic(R('mkt.insLose',{m:DICT.maker[ml.mi],a:fmt(ml.a),b:fmt(ml.b),d:fmt(ml.d)})));
+  }
+  /* ⑤ 细分结构迁移（SUV / SEDAN / MPV） */
+  if(sA.tot>0 && sB.tot>0){
+    const sg=['SUV','SEDAN','MPV'].map(k=>{
+      const a=sA.byType[k]?sA.byType[k].tot/sA.tot*100:0, b=sB.byType[k]?sB.byType[k].tot/sB.tot*100:0;
+      return {k:k,a:a,b:b,d:b-a};
+    }).sort((x,y)=>y.d-x.d);
+    const g=sg[0], l=sg[sg.length-1];
+    if(g && l && g.k!==l.k && Math.abs(g.d)>=0.5 && !(g.a<1 && g.b<1)){
+      P('mix', 560+Math.min(160,Math.abs(g.d)*14),
+        ic(R('mkt.insMix',{s1:g.k,a1:n1(g.a),b1:n1(g.b),d1:sd(g.d),
+                           s2:l.k,a2:n1(l.a),b2:n1(l.b),d2:sd(l.d)})));
+    }
+  }
+  /* ⑥ 集中度 CR3：变化 <1 pct 不说（HHI 卡已有绝对值） */
+  if(sA.tot>0 && sB.tot>0){
+    const cr3=(mp,tot)=>{ const v=[...mp.values()].sort((a,b)=>b-a).slice(0,3); return v.reduce((s,x)=>s+x,0)/(tot||1)*100; };
+    const pa=cr3(mkA,sA.tot), pb=cr3(mkB,sB.tot), d=pb-pa;
+    if(Math.abs(d)>=1){
+      const top3=[...mkB.entries()].sort((x,y)=>y[1]-x[1]).slice(0,3).map(e=>DICT.maker[e[0]]).join(' / ');
+      P('conc', 540+Math.min(140,Math.abs(d)*16), ic(R('mkt.insConc',{a:n1(pa),b:n1(pb),d:sd(d),list:top3})));
+    }
+  }
+  /* ⑦ 车型层：易主（最有价值）/ 头部车型份额或同比显著 */
+  let nb=null; try{ nb=mktModelBoard(ymA1,ymA2,ymB1,ymB2); }catch(e){ nb=null; }
+  if(nb && nb.topB && sB.tot>0){
+    const t=nb.topB, p=t.v/sB.tot*100;
+    const prev=nb.A.get(t.mdi)||0, d=t.v-prev;
+    const swapped=!!(nb.topA && nb.topA.mdi!==t.mdi);
+    if(swapped){
+      P('model', 950, ic(R('mkt.insModelNew',{m:DICT.model[t.mdi],mk:DICT.maker[MODEL_MAKER[t.mdi]]||'-',
+        v:fmt(t.v),p:n1(p),prev:DICT.model[nb.topA.mdi]})));
+    } else if(p>=5 || Math.abs(d)/Math.max(prev,1)>=0.15){
+      P('model', 420+Math.min(120,Math.abs(d)/40),
+        ic(R('mkt.insModel',{m:DICT.model[t.mdi],mk:DICT.maker[MODEL_MAKER[t.mdi]]||'-',
+          v:fmt(t.v),p:n1(p),d:(d>=0?'+':'')+fmt(d)})));
+    }
+  }
+  /* ⑧ 非国民品牌份额：**只有非退化且真的动了**才说（旧版 100.0% / +0.0 pct 就是这么来的） */
+  if(sA.tot>0 && sB.tot>0 && sB.nonLocalPct>1 && sB.nonLocalPct<99 && sA.nonLocalPct>1 && sA.nonLocalPct<99){
+    const d=sB.nonLocalPct-sA.nonLocalPct;
+    if(Math.abs(d)>=0.5) P('local', 640+Math.min(140,Math.abs(d)*14), ic(R('mkt.insightLocal',{local:n1(sB.nonLocalPct),dLocal:sd(d)})));
+  }
+  /* ⑨ 兜底：大盘总量（其余候选都不成立时至少有一条实话） */
+  if(sA.tot>0){
+    const d=sB.tot-sA.tot;
+    P('base', 100, ic(R('mkt.insBase',{t:fmt(sB.tot),d:(d>=0?'+':'')+fmt(d),p:sd(d/sA.tot*100)+'%'})));
+  }
+
+  cand.sort((a,b)=>b.score-a.score);
+  let html=cand.slice(0,4).map(c=>c.html).join('');
+  /* 口径说明（原「年化外推」洞察）降级为脚注 */
+  const monthsB=(typeof YM_SORTED!=='undefined'&&YM_SORTED.length)?YM_SORTED.filter(y=>y>=ymB1&&y<=ymB2).length:0;
+  if(monthsB>0 && monthsB<=12 && sB.tot>0){
+    html+='<div class="ins-note">'+R('mkt.insightProj',{m:monthsB,t:fmt(sB.tot),a:fmt(Math.round(sB.tot/monthsB*12))})+'</div>';   /*V323 fix：键名是 mkt.insightProj*/
+  }
+  el.innerHTML=html;
 }
 // ===== Q1 数据逻辑补强 (V142): HHI / 维度切换 / 价格带 / NEV分厂家 =====
 let mktDimCur='maker';
@@ -11217,6 +11657,687 @@ function exportTrendCsv(){
   });
   try{ const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('﻿'+out); a.download='市场年度趋势_份额%.csv'; a.click(); }catch(e){}
 }
+
+// ================= V307: Chery 集团（CHERY / O&J / ICAUR）vs 乘用车大盘 / SUV 大盘 =================
+const CHERY_GRP_BRANDS = ['CHERY','O&J','ICAUR'];
+const CHERY_COLOR = {chery:'#0f4c81', oj:'#e07b39', icaur:'#4aa3b8',
+                     grp:'#036B66', mkt:'#8a7a5e', suv:'#8B2635', toyota:'#7048a8', honda:'#8A8F98' /*V307F 灰色*/}; /*V307D*/
+function cheryLbl(ym){ return (ym%100)+"'"+(Math.floor(ym/100)+'').slice(2); }
+/* 窗口 = 截至 anchorYm 的近 12 个有数据月份；anchorYm 缺省取最新月 */
+function mktCheryWindow(anchorYm){
+  const yms = [...(allYms||[])].sort((a,b)=>a-b);
+  if(!yms.length) return null;
+  let end = anchorYm || yms[yms.length-1];
+  let ei = yms.findIndex(y=>y>=end);
+  if(ei<0) ei = yms.length-1; else if(yms[ei]>end) ei = Math.max(0, ei-1);
+  const e = yms[ei];
+  let sy = Math.floor(e/100), sm = (e%100)-11; /*V329: 12 个月（含对比期末月）*/
+  while(sm<=0){ sm+=12; sy-=1; }
+  const s = sy*100+sm;
+  const axis = yms.filter(v=>v>=s && v<=e);
+  const pick = (ym)=>{
+    const mk = byCat.maker.get(ym) || new Map();
+    const ty = byCat.type.get(ym) || new Map();
+    let gt=0; const g={};
+    for(const b of CHERY_GRP_BRANDS){ const v = mk.get(b)||0; g[b]=v; gt+=v; }
+    return {chery:g['CHERY'], oj:g['O&J'], icaur:g['ICAUR'], grp:gt,
+            mkt: ymTotals.get(ym)||0, suv: ty.get('SUV')||0,
+            toyota: mk.get('Toyota')||0, honda: mk.get('Honda')||0}; /*V307D*/
+  };
+  const prevYm = ym => (ym%100)>1 ? ym-1 : (Math.floor(ym/100)-1)*100+12;
+  const pct = (a,b)=> b>0 ? (a/b-1)*100 : null;
+  const rows = axis.map(ym=>{
+    const cur=pick(ym), p=pick(prevYm(ym)), l=pick(ym-100);
+    return Object.assign({ym:ym}, cur, {
+      grpMoM:pct(cur.grp,p.grp), mktMoM:pct(cur.mkt,p.mkt), suvMoM:pct(cur.suv,p.suv),
+      toyotaMoM:pct(cur.toyota,p.toyota), hondaMoM:pct(cur.honda,p.honda),
+      grpYoY:pct(cur.grp,l.grp), mktYoY:pct(cur.mkt,l.mkt), suvYoY:pct(cur.suv,l.suv),
+      toyotaYoY:pct(cur.toyota,l.toyota), hondaYoY:pct(cur.honda,l.honda), /*V307D*/
+      shrMkt: cur.mkt>0 ? cur.grp/cur.mkt*100 : null,
+      shrSuv: cur.suv>0 ? cur.grp/cur.suv*100 : null
+    });
+  });
+  /*V329 YTD：最新月所属自然年 1 月至最新月的累计销量（与市场 tab 的 YTD 口径一致）*/
+  const _yr = Math.floor(e/100);
+  const _ytd = k => { let t=0; for(const ym of yms){ if(Math.floor(ym/100)!==_yr) continue; if(ym>e) break; t += (pick(ym)[k]||0); } return t; };
+  const ytd = {grp:_ytd('grp'), mkt:_ytd('mkt'), suv:_ytd('suv')}; /*V329*/
+  /*V333 窗口同比 / YTD同比（集团口径 = CHERY+O&J+iCAUR 合计；与品牌卡 V332 同一套累计对累计口径）
+     · 前一窗口取 yms 中「窗口首月之前最近的 12 个自然月」→ 对缺月数据也稳健
+     · 去年同期 = 本年 YTD 各月的同月（e-100 即去年同月）
+     · 基期为 0 → 返回 null，由 pv() 渲染成 '—'，不产生 Infinity/NaN */
+  const _prevWin = yms.filter(v=>v<s).slice(-12);
+  const _lyMonths = yms.filter(ym=>Math.floor(ym/100)===_yr-1 && ym<=e-100);
+  /*V338 三口径（集团/大盘/SUV）窗口/YTD 同比 + YTD 份额同比（pp）；win/ytd 字段保留集团口径，兼容 V333 消费方*/
+  const _sumK = (k,list)=>list.reduce((a,ym)=>a+(pick(ym)[k]||0),0);
+  const _yoK = (k)=>{
+    const pw=_sumK(k,_prevWin), lw=_sumK(k,_lyMonths);
+    const wy=rows.reduce((a,r)=>a+(r[k]||0),0);
+    return {win: pw>0 ? (wy/pw-1)*100 : null, ytd: lw>0 ? ((ytd[k]||0)/lw-1)*100 : null};
+  };
+  const _yoyG=_yoK('grp'), _yoyM=_yoK('mkt'), _yoyS=_yoK('suv');
+  const _shrD = (num,den,lnum,lden)=> (den>0&&lden>0) ? (num/den-lnum/lden)*100 : null;
+  const _lyG = _sumK('grp',_lyMonths);
+  const yoy = {
+    win: _yoyG.win, ytd: _yoyG.ytd,
+    grp:_yoyG, mkt:_yoyM, suv:_yoyS,
+    shrD:{ mkt:_shrD(ytd.grp,ytd.mkt,_lyG,_sumK('mkt',_lyMonths)),
+           suv:_shrD(ytd.grp,ytd.suv,_lyG,_sumK('suv',_lyMonths)) }
+  };
+  return {rows:rows, start:s, end:e, ytd:ytd, yoy:yoy};
+}
+function renderMktChery(anchorYm){
+  const win = mktCheryWindow(anchorYm);
+  if(!win || !win.rows.length) return;
+  const rows = win.rows, labels = rows.map(r=>cheryLbl(r.ym));
+  const LAST = rows[rows.length-1];
+  const SUM = k => rows.reduce((a,r)=>a+(r[k]||0),0);
+  const pv = v => v==null ? '—' : (v>=0?'+':'')+v.toFixed(1)+'%';
+  const cls = v => v==null ? '' : (v>=0?'up':'down');
+  const LEG = {boxWidth:10, boxHeight:10, font:{size:11}, padding:10};
+  const AXL = ()=>({grid:{display:false}, ticks:{font:{size:10}, color:themeInk()}});
+  /*V333 图B「同比 YoY」标题行右侧的窗口同比 / YTD同比（集团口径；与品牌卡同一套 pv()/cls() 视觉语言）*/
+  const _gyoy = win.yoy || {};
+  const _gys = document.getElementById('mkt-chery-yoy');
+  if(_gys) _gys.innerHTML = '<span>'+T('mkt.mkrYoyWin')+' <b class="'+cls(_gyoy.win)+'">'+pv(_gyoy.win)+'</b></span>'
+    + '<span>'+T('mkt.mkrYoyYtd')+' <b class="'+cls(_gyoy.ytd)+'">'+pv(_gyoy.ytd)+'</b></span>';
+  const mkLine = (label,data,color,yID,dash,ord)=>({type:'line', label:label, data:data, yAxisID:yID,
+      borderColor:color, backgroundColor:color, borderWidth:2, pointRadius:2.5, pointHoverRadius:4,
+      tension:.3, order:ord||0, borderDash:dash||[]});
+  // ---------- 图 A（V307C：上下双面板——上面板集团市占率双线，下面板三品牌堆叠柱，共用类目轴） ----------
+  const barDL = {display:true, anchor:'center', align:'center', color:'#fff', font:{size:9, weight:'bold'},
+                 formatter:v=>v>0?v:null};
+  const lineDL = (color, align)=>({display:true, anchor:'end', align:align, color:color, font:{size:9, weight:'bold'},
+                 backgroundColor:'rgba(255,255,255,.75)', borderRadius:2, padding:1,
+                 formatter:v=>v==null?null:v.toFixed(1)+'%'}); /*V327*/ /*V307C*/
+  var cheryAleg=document.getElementById('mkt-chery-aleg'); if(cheryAleg) cheryAleg.innerHTML=chLegHtml([['#8A8F98',false,T('mkt.cheryShrMkt')],['#8B2635',true,T('mkt.cheryShrSuv')]]); /*V309E*/
+  destroyChart('c-mkt-cheryAshr');
+  const _sv=rows.flatMap(r=>[r.shrMkt,r.shrSuv]).filter(v=>v!=null&&isFinite(v)); /*V309G 纵轴自适应*/
+  const _sMax=_sv.length?Math.max(..._sv):100, _sMin=_sv.length?Math.min(..._sv):0;
+  const _sPad=Math.max((_sMax-_sMin)*0.25,_sMax*0.18,2);
+  const _sLo=Math.max(0,_sMin-_sPad), _sHi=_sMax+_sPad;
+  charts['c-mkt-cheryAshr'] = new Chart(document.getElementById('c-mkt-cheryAshr'), {
+    type:'line',
+    data:{labels:labels, datasets:[
+      Object.assign(mkLine(T('mkt.cheryShrMkt'), rows.map(r=>r.shrMkt), '#8A8F98' /*V309F 与图B 乘用车大盘灰一致*/, 'y1', [], 1), {datalabels:lineDL('#8A8F98', 'bottom')}),
+      Object.assign(mkLine(T('mkt.cheryShrSuv'), rows.map(r=>r.shrSuv), '#8B2635' /*V309F 酒红*/, 'y1', [5,4], 2), {datalabels:lineDL('#8B2635', 'top')})
+    ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{legend:{display:false}, /*V309E 图例移至图A标题行右侧*/
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y==null?'—':c.parsed.y.toFixed(1)+'%')}}},
+      scales:{x:{stacked:true, offset:true, ticks:{display:false}, grid:{display:false}, border:{display:false}}, y:{display:true, ticks:{display:false}, grid:{display:false}, border:{display:false}, afterFit:s=>{s.width=44}}, /*V307E 隐藏左轴占位，与下面板绘图区对齐*/
+        y1:{position:'right', beginAtZero:false, min:_sLo, max:_sHi, afterFit:s=>{s.width=44}, /*V309G 纵轴自适应（原 grace:'12%'）V307E 右轴定宽，与下面板左轴等宽→两面板绘图区对齐*/
+            title:{display:false}, ticks:{display:false}, grid:{display:false}}} /*V307F 去刻度/标题/横网格线（定宽占位保留对齐）*/
+    }
+  });
+  destroyChart('c-mkt-cheryA');
+  charts['c-mkt-cheryA'] = new Chart(document.getElementById('c-mkt-cheryA'), {
+    data:{labels:labels, datasets:[
+      {type:'bar', label:T('mkt.cheryChery'), data:rows.map(r=>r.chery), backgroundColor:CHERY_COLOR.chery, stack:'g', yAxisID:'y', order:3, barPercentage:.78, categoryPercentage:.86, datalabels:barDL},
+      {type:'bar', label:T('mkt.cheryOJ'),    data:rows.map(r=>r.oj),    backgroundColor:CHERY_COLOR.oj,    stack:'g', yAxisID:'y', order:3, datalabels:barDL},
+      {type:'bar', label:T('mkt.cheryIcaur'), data:rows.map(r=>r.icaur), backgroundColor:CHERY_COLOR.icaur, stack:'g', yAxisID:'y', order:3, datalabels:barDL},
+      Object.assign(mkLine(T('mkt.cheryGrpTot'), rows.map(r=>r.grp), 'transparent', 'y', [], 0),
+        {datalabels:{display:true, anchor:'end', align:'top', offset:2, color:'#9AA3AE', font:{size:11.5, weight:'bold'} /*V307E 浅灰 +2号*/,
+                     formatter:v=>v>0?fmt(v):null}}) /*V307D 合计标签（柱顶）*/
+    ]},
+    options:{responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{legend:{position:'bottom', labels:Object.assign({filter:item=>item.text!==T('mkt.cheryGrpTot')}, LEG)},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)+' '+T('mkt.cheryUnit')}}},
+      scales:{x:Object.assign({stacked:true}, AXL()),
+        y:{stacked:true, position:'left', grace:'8%', afterFit:s=>{s.width=44}, /*V307E 左轴定宽*/ title:{display:false},
+           ticks:{display:false}, grid:{display:false}}, /*V307F 去刻度/标题/横网格线*/ y2:{position:'right', display:true, ticks:{display:false}, grid:{display:false}, border:{display:false}, afterFit:s=>{s.width=44}}} /*V307E 隐藏右轴占位，与上面板 y1 对称*/
+    }
+  });
+  // ---------- 图 B（小多倍；V307D 加入 Toyota / Honda 对照） ----------
+  const CMP_LINES = [ /*V307E: 去掉乘用车大盘 / Toyota*/
+    [T('mkt.cheryGrp'),   'grp',   CHERY_COLOR.grp,   []],
+    [T('mkt.cherySuv'),   'suv',   CHERY_COLOR.suv,   [5,4]],
+    [T('mkt.cheryHonda'), 'honda', CHERY_COLOR.honda, [5,4]]
+  ];
+/*V328*/ /* 图B 标注：三条折线各标 最高点 / 最低点 / 最近一个月。
+   同 x 的标签用「像素级装箱」排布：按锚点 y 升序逐个尝试放上方，撞了放下方，再撞往下顺延，
+   于是同一 x 的标签盒两两不相交；相邻 x 相距远大于标签宽，横向也不会相交。*/
+   const _bMark = (arr)=>{
+  const s=new Set(), n=arr.length; if(!n) return s;
+  let iMax=-1, iMin=-1, vMax=-Infinity, vMin=Infinity;
+  arr.forEach((v,i)=>{ if(v==null||!isFinite(v)) return;
+    if(v>vMax){vMax=v;iMax=i;} if(v<vMin){vMin=v;iMin=i;} });
+  if(iMax>=0) s.add(iMax);
+  if(iMin>=0) s.add(iMin);
+  s.add(n-1);
+  return s;
+};
+   const _bAxis = (ms)=>{
+  const f=ms.flat().filter(v=>v!=null&&isFinite(v));
+  const hi=f.length?Math.max(...f):1, lo=f.length?Math.min(...f):0;
+  const pad=Math.max((hi-lo)*0.20, Math.abs(hi)*0.05, 3);
+  return [lo-pad, hi+pad];
+};
+   const _bPkBox = 15;   /* 标签盒高 13px + 2px 呼吸 */
+   const _bPack = (ch, j, _bms, _bmk)=>{
+  const H=_bPkBox, ca=ch.chartArea;
+  const key='p'+j+'_'+Math.round(ca.top)+'_'+Math.round(ca.bottom);
+  if(!ch.__bp) ch.__bp={};
+  if(ch.__bp[key]) return ch.__bp[key];
+  const at=[];
+  _bms.forEach((t,k)=>{ if(_bmk[k].has(j) && t[j]!=null) at.push({k:k, y:ch.scales.y.getPixelForValue(t[j])}); });
+  at.sort((a,b)=>a.y-b.y);
+  const tops=at.map(o=>o.y-H);
+  for(let i=1;i<tops.length;i++) if(tops[i]<tops[i-1]+H) tops[i]=tops[i-1]+H;
+  const over=(tops.length?tops[tops.length-1]+H:0)-ca.bottom;
+  if(over>0){
+    for(let i=0;i<tops.length;i++) tops[i]-=over;
+    if(tops[0]<ca.top){
+      const d=ca.top-tops[0];
+      for(let i=0;i<tops.length;i++) tops[i]+=d;
+      for(let i=1;i<tops.length;i++) if(tops[i]<tops[i-1]+H) tops[i]=tops[i-1]+H;
+    }
+  }
+  const m={};
+  at.forEach((o,ix)=>{ m[o.k]={y:o.y, cy:tops[ix]+H/2}; });
+  ch.__bp[key]=m;
+  return m;
+};
+  const pctChart = (id, suf, titleKey) => {
+    destroyChart(id);
+    const _bms = CMP_LINES.map(L=>rows.map(r=>r[L[1]+suf]));
+    const _bmk = _bms.map(_bMark);
+    const _bax = _bAxis(_bms);
+    const _bsd = _bms.map((s,i)=>s.map((v,j)=>(v==null||!_bmk[i].has(j))?null:1));
+    charts[id] = new Chart(document.getElementById(id), {
+      data:{labels:labels, datasets:CMP_LINES.map((L,i)=>Object.assign(mkLine(L[0], _bms[i], L[2], 'y', L[3], i), {datalabels:{
+        display:true, align:'center', color:L[2], font:{size:9, weight:'bold'},
+        backgroundColor:'rgba(255,255,255,.82)', borderRadius:2, padding:1,
+        offset:(ctx)=>{ const o=_bPack(ctx.chart, ctx.dataIndex, _bms, _bmk)[ctx.datasetIndex]; return {x:0, y:o ? Math.round(o.cy-o.y) : 0}; },
+        formatter:(v,ctx)=>(v==null||_bsd[ctx.datasetIndex][ctx.dataIndex]==null)?null:v.toFixed(1)+'%'}}))},
+      options:{responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index', intersect:false},
+        plugins:{legend:{position:'bottom', labels:LEG},
+          tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y==null?'—':c.parsed.y.toFixed(1)+'%')}}},
+        scales:{x:Object.assign({offset:true}, AXL()),
+          y:{min:_bax[0], max:_bax[1], ticks:{font:{size:10}, callback:v=>(Math.round(v*10)/10)+'%', color:c=>c.tick&&c.tick.value<0?'#A93226':themeInk()}, grid:{color:themeGrid()},
+             title:{display:true, text:T(titleKey), font:{size:10}}}}
+      }
+    });
+  };
+  pctChart('c-mkt-cheryB1','YoY','mkt.cheryYoyT');
+  pctChart('c-mkt-cheryB2','MoM','mkt.cheryMomT'); /*V307D*/
+  // ---------- KPI + 洞察 ----------
+  const kEl = document.getElementById('mkt-chery-kpis');
+  if(kEl){
+    /*V330 YTD 占比：集团年度累计 ÷ 同期大盘 / SUV 大盘累计
+      （与该模块既有「最新月 · 占 SUV」口径一致：cherry 窗口的 pick 无细分 SUV 字段，
+       沿用 cur.grp/cur.suv 的定义，保证同卡内两行同口径）*/
+    const ytdShr = (a,b)=>(a==null||!b||!isFinite(a/b))?'—':(a/b*100).toFixed(1)+'%';
+    /*V338 KPI 同比小字（用户确认示意图）：前 6 项 = 累计对累计同比；第 7/8 项 = YTD 份额同比（pp）；第 9–13 项不变*/
+    const subCls = v => (v==null||Math.abs(v)<0.005) ? '' : v>0 ? ' k-up' : ' k-dn';
+    const subPct = v => v==null ? '—' : (v>=0?'+':'')+v.toFixed(1)+'%';
+    const subPp  = v => v==null ? '—' : Math.abs(v)<0.005 ? '±0.0pp' : Math.abs(v)<0.095 ? (v>0?'+':'')+v.toFixed(2)+'pp' : (v>0?'+':'')+v.toFixed(1)+'pp';
+    const subHtml = (lb,v,f) => '<div class="ksub"><span class="lb">'+lb+'</span><span class="sv'+subCls(v)+'">'+f(v)+'</span></div>';
+    const yoy = win.yoy; /*V339 修复：V338 cells 裸引用 yoy 未定义（作用域内实为 win.yoy）*/
+    const cells = [
+      [T('mkt.cheryKWinG'), fmt(SUM('grp')), '', subHtml(T('mkt.ksubYoy'), yoy.grp.win, subPct)],
+      [T('mkt.cheryKWinM'), fmt(SUM('mkt')), '', subHtml(T('mkt.ksubYoy'), yoy.mkt.win, subPct)],
+      [T('mkt.cheryKWinS'), fmt(SUM('suv')), '', subHtml(T('mkt.ksubYoy'), yoy.suv.win, subPct)],
+      [T('mkt.cheryKYtdG'), fmt(win.ytd&&win.ytd.grp), '', subHtml(T('mkt.ksubYoy'), yoy.grp.ytd, subPct)],
+      [T('mkt.cheryKYtdM'), fmt(win.ytd&&win.ytd.mkt), '', subHtml(T('mkt.ksubYoy'), yoy.mkt.ytd, subPct)],
+      [T('mkt.cheryKYtdS'), fmt(win.ytd&&win.ytd.suv), '', subHtml(T('mkt.ksubYoy'), yoy.suv.ytd, subPct)],
+      [T('mkt.cheryKYtdShrM'), ytdShr(win.ytd&&win.ytd.grp, win.ytd&&win.ytd.mkt), '', subHtml(T('mkt.ksubShr'), yoy.shrD.mkt, subPp)],
+      [T('mkt.cheryKYtdShrS'), ytdShr(win.ytd&&win.ytd.grp, win.ytd&&win.ytd.suv), '', subHtml(T('mkt.ksubShr'), yoy.shrD.suv, subPp)],
+      [T('mkt.cheryKLastG'), fmt(LAST.grp), '', ''],
+      [T('mkt.cheryKLastYoy'), pv(LAST.grpYoY), cls(LAST.grpYoY), ''],
+      [T('mkt.cheryKLastMom'), pv(LAST.grpMoM), cls(LAST.grpMoM), ''],
+      [T('mkt.cheryKShrMkt'), LAST.shrMkt==null?'—':LAST.shrMkt.toFixed(1)+'%', '', ''],
+      [T('mkt.cheryKShrSuv'), LAST.shrSuv==null?'—':LAST.shrSuv.toFixed(1)+'%', '', '']
+    ];
+    kEl.innerHTML = cells.map(c=>'<div class="ch-kpi'+(c[2]?(c[2]==='up'?' b-up':' b-dn'):'')+'"><div class="k">'+c[0]+'</div><div class="v'+(c[2]?' '+c[2]:'')+'">'+c[1]+'</div>'+(c[3]||'')+'</div>').join('');
+  }
+  const iEl = document.getElementById('mkt-chery-insight');
+  if(iEl){
+    iEl.innerHTML = T('mkt.cheryIns')
+      .replace('{range}', cheryLbl(win.start)+' – '+cheryLbl(win.end))
+      .replace('{g}', fmt(SUM('grp'))).replace('{m}', fmt(SUM('mkt'))).replace('{s}', fmt(SUM('suv')))
+      .replace('{sg}', SUM('mkt')>0?(SUM('grp')/SUM('mkt')*100).toFixed(1):'0')
+      .replace('{ss}', SUM('suv')>0?(SUM('grp')/SUM('suv')*100).toFixed(1):'0')
+      .replace('{lm}', cheryLbl(LAST.ym)).replace('{lv}', fmt(LAST.grp))
+      .replace('{ly}', pv(LAST.grpYoY)).replace('{lq}', pv(LAST.grpMoM));
+  }
+}
+
+
+// ================= V309: 勾选厂家 × 大盘 动态模块（{MAKER} vs 大盘） =================
+const MKR_COLORS = {brand:'#8A8F98', brandGrn:'#036B66', shrSuv:'#8B2635', mkt:'#8A8F98', suv:'#8B2635'}; /*V309F 图A 线灰/酒红（与图B 大盘口径一致）、柱绿、图B 绿/灰/酒红*/
+function chLegHtml(items){ return items.map(function(it){ return '<span class="ch-leg-i"><span class="ch-leg-sw" style="border-top-style:'+(it[1]?'dashed':'solid')+';border-top-color:'+it[0]+'"></span>'+it[2]+'</span>'; }).join(''); } /*V309E 标题行 HTML 图例*/
+const MKR_MAX_CARDS = 8;
+/*V312 品牌归一后可能存在「两个索引同名」（如 13/18 都叫 BMW）。把非首次出现的索引
+   重定向到首次出现的索引，否则该幽灵索引会「按名字借到销量、按索引拿不到 SUV」，
+   产生自相矛盾的行。所有按索引取品牌数据的地方都应先过一道 makerCanon。*/
+let MAKER_CANON = null;
+function makerCanon(mi){
+  if(!MAKER_CANON || MAKER_CANON.length !== DICT.maker.length){
+    MAKER_CANON = []; const _first = new Map();
+    DICT.maker.forEach((n,i)=>{
+      if(_first.has(n)) MAKER_CANON[i] = _first.get(n);
+      else { _first.set(n,i); MAKER_CANON[i] = i; }
+    });
+  }
+  return MAKER_CANON[mi] === undefined ? mi : MAKER_CANON[mi];
+}
+let MKR_SUV_CACHE = null; /* maker_i -> Map(ym -> SUV 注册量) */
+function mkrSuvMap(){
+  if(MKR_SUV_CACHE) return MKR_SUV_CACHE;
+  const m = new Map();
+  for(const [ym,mdi,ti,,,n] of CUBE_MD){
+    if(DICT.type[ti]!=='SUV') continue;
+    const mi = MODEL_MAKER[mdi]; if(mi===undefined||mi<0) continue;
+    if(!m.has(mi)) m.set(mi,new Map());
+    const mm = m.get(mi); mm.set(ym,(mm.get(ym)||0)+n);
+  }
+  MKR_SUV_CACHE = m; return m;
+}
+/*V312 品牌 × 车型 汇总（车型堆叠柱用）：maker_i -> Map(model_i -> Map(ym -> n)) */
+let MKR_MDL_CACHE = new Map();
+function mkrModelMap(mi){
+  if(MKR_MDL_CACHE.has(mi)) return MKR_MDL_CACHE.get(mi);
+  const byModel = new Map();
+  for(const [ym,mdi,ti,,,n] of CUBE_MD){
+    if(MODEL_MAKER[mdi]!==mi) continue;
+    let o = byModel.get(mdi);
+    if(!o){ o = {name:DICT.model[mdi], byYm:new Map()}; byModel.set(mdi,o); }
+    o.byYm.set(ym,(o.byYm.get(ym)||0)+n);
+  }
+  MKR_MDL_CACHE.set(mi,byModel); return byModel;
+}
+/* 堆叠配色：首位沿用品牌墨绿（视觉延续），其后依次橙 / 青 / 紫，末位灰=其他 */
+const MKR_STACK_COLORS = ['#036B66','#e07b39','#4aa3b8','#7e57c2','#9AA3AE'];
+/* 按窗口累计取前 4 车型，其余合并为「其他」；返回 [{name, data, color}] */
+function mkrTopModels(mi, yms, otherLbl){
+  const byModel = mkrModelMap(mi);
+  const arr = [...byModel.values()].map(o=>({
+    name: o.name,
+    tot: yms.reduce((a,ym)=>a+(o.byYm.get(ym)||0),0),
+    data: yms.map(ym=>o.byYm.get(ym)||0)
+  })).filter(o=>o.tot>0).sort((a,b)=>b.tot-a.tot);
+  const out = arr.slice(0,4).map((o,i)=>({name:o.name, data:o.data, color:MKR_STACK_COLORS[i]}));
+  const rest = arr.slice(4);
+  if(rest.length) out.push({
+    name: otherLbl,
+    color: MKR_STACK_COLORS[4],
+    data: yms.map((_,i)=>rest.reduce((a,o)=>a+o.data[i],0))
+  });
+  return out;
+}
+function mkrLbl(ym){ return (ym%100)+"'"+(Math.floor(ym/100)+'').slice(2); }
+/*V329 窗口与 CHERY GROUP 模块一致：截至 anchorYm 的近 12 个自然月；固定口径，不受 tab 上方筛选影响 */
+function mkrWindow(anchorYm, mi){
+  mi = makerCanon(mi);   /*V312 重名索引重定向到规范索引，避免幽灵数据*/
+  const yms = [...(allYms||[])].sort((a,b)=>a-b);
+  if(!yms.length) return null;
+  let end = anchorYm || yms[yms.length-1];
+  let ei = yms.findIndex(y=>y>=end);
+  if(ei<0) ei = yms.length-1; else if(yms[ei]>end) ei = Math.max(0, ei-1);
+  const e = yms[ei];
+  let sy = Math.floor(e/100), sm = (e%100)-11; /*V329: 12 个月（含对比期末月）*/
+  while(sm<=0){ sm+=12; sy-=1; }
+  const s = sy*100+sm;
+  const axis = yms.filter(v=>v>=s && v<=e);
+  const name = DICT.maker[mi];
+  const suvMap = (mkrSuvMap().get(mi)||new Map());
+  const pick = (ym)=>{
+    const mk = byCat.maker.get(ym) || new Map();
+    const ty = byCat.type.get(ym) || new Map();
+    return {sales:mk.get(name)||0, mkt:ymTotals.get(ym)||0, suv:ty.get('SUV')||0, suvB:suvMap.get(ym)||0};
+  };
+  const prevYm = ym => (ym%100)>1 ? ym-1 : (Math.floor(ym/100)-1)*100+12;
+  const pct = (a,b)=> b>0 ? (a/b-1)*100 : null;
+  const rows = axis.map(ym=>{
+    const cur=pick(ym), p=pick(prevYm(ym)), l=pick(ym-100);
+    return Object.assign({ym:ym}, cur, {
+      salesMoM:pct(cur.sales,p.sales), mktMoM:pct(cur.mkt,p.mkt), suvMoM:pct(cur.suv,p.suv),
+      salesYoY:pct(cur.sales,l.sales), mktYoY:pct(cur.mkt,l.mkt), suvYoY:pct(cur.suv,l.suv),
+      shrMkt: cur.mkt>0 ? cur.sales/cur.mkt*100 : null,
+      shrSuv: cur.suv>0 ? cur.suvB/cur.suv*100 : null /*V309G 修复：分子=品牌 SUV 销量 suvB（原误用品牌总销量）*/
+    });
+  });
+  /*V329 YTD：最新月所属自然年 1 月至最新月的累计销量（与市场 tab 的 YTD 口径一致）*/
+  const _yr = Math.floor(e/100);
+  const _ytd = k => { let t=0; for(const ym of yms){ if(Math.floor(ym/100)!==_yr) continue; if(ym>e) break; t += (pick(ym)[k]||0); } return t; };
+  /*V330 YTD · 占 SUV 与「最新月 · 占 SUV」同口径：分子 = 品牌自身 SUV（suvB），非品牌总销量*/
+  const ytd = {brand:_ytd('sales'), mkt:_ytd('mkt'), suv:_ytd('suv'), suvB:_ytd('suvB')}; /*V329*/
+  /*V332 窗口同比 / YTD同比（仅品牌销量，累计对累计，与顶部「窗口累计 / YTD」同源口径）
+     · 前一窗口取 yms 中「窗口首月之前最近的 12 个自然月」→ 对缺月数据也稳健
+     · 去年同期 = 本年 YTD 各月的同月（e-100 即去年同月）
+     · 基期为 0（新入场品牌无去年同期）→ 返回 null，由 pv() 渲染成 '—'，不产生 Infinity/NaN */
+  const _prevWin = yms.filter(v=>v<s).slice(-12);
+  const _lyMonths = yms.filter(ym=>Math.floor(ym/100)===_yr-1 && ym<=e-100);
+  /*V342 三口径（品牌/大盘/SUV）窗口/YTD 同比 + YTD 份额同比（pp）；win/ytd 字段保留品牌口径，兼容 V332 消费方；
+    SUV 份额分子 = 品牌 SUV 累计 suvB（V330 口径）。_yoK 第二参 = ytd 键名（销量键 sales 的 ytd 键为 brand）*/
+  const _sumK = (k,list)=>list.reduce((a,ym)=>a+(pick(ym)[k]||0),0);
+  const _yoK = (k,yk)=>{
+    const pw=_sumK(k,_prevWin), lw=_sumK(k,_lyMonths);
+    const wy=rows.reduce((a,r)=>a+(r[k]||0),0);
+    return {win: pw>0 ? (wy/pw-1)*100 : null, ytd: lw>0 ? ((ytd[yk||k]||0)/lw-1)*100 : null};
+  };
+  const _yoyB=_yoK('sales','brand'), _yoyM=_yoK('mkt'), _yoyS=_yoK('suv');
+  const _shrD = (num,den,lnum,lden)=> (den>0&&lden>0) ? (num/den-lnum/lden)*100 : null;
+  const _lyB = _sumK('sales',_lyMonths), _lyMk=_sumK('mkt',_lyMonths),
+        _lySv=_sumK('suv',_lyMonths), _lySb=_sumK('suvB',_lyMonths);
+  const yoy = {
+    win: _yoyB.win, ytd: _yoyB.ytd,
+    brand:_yoyB, mkt:_yoyM, suv:_yoyS,
+    shrD:{ mkt:_shrD(ytd.brand,ytd.mkt,_lyB,_lyMk),
+           suv:_shrD(ytd.suvB,ytd.suv,_lySb,_lySv) }
+  };
+  return {rows:rows, start:s, end:e, ytd:ytd, yoy:yoy};
+}
+function renderMktMakerCards(anchorYm){
+  const wrap = document.getElementById('mkt-maker-cards'); if(!wrap) return;
+  const sel = mslicerVals('mkt-maker');
+  const total = document.querySelectorAll('#mkt-maker input[type=checkbox]').length;
+  /* 全量重建前先销毁全部动态图表实例，避免泄漏 */
+  Object.keys(charts).forEach(id=>{ if(id.indexOf('c-mkmkr-')===0) destroyChart(id); });
+  if(!total || !sel.length || sel.length>=total){ wrap.innerHTML=''; return; }
+  /* 按窗口累计销量取前 8 */
+  const scored = sel.map(mi=>{
+    const w = mkrWindow(anchorYm, mi);
+    return {mi:mi, tot: w ? w.rows.reduce((a,r)=>a+r.sales,0) : 0, win:w};
+  }).sort((a,b)=>b.tot-a.tot);
+  const show = scored.slice(0, MKR_MAX_CARDS);
+  const trunc = scored.length > MKR_MAX_CARDS;
+  const AXL = ()=>({grid:{display:false}, ticks:{font:{size:10}, color:themeInk()}});
+  const LEG = {boxWidth:10, boxHeight:10, font:{size:11}, padding:10};
+  const mkLine = (label,data,color,dash,ord,yID)=>({type:'line', label:label, data:data, yAxisID:yID||'y',
+      borderColor:color, backgroundColor:color, borderWidth:2, pointRadius:2.5, pointHoverRadius:4,
+      tension:.3, order:ord||0, borderDash:dash||[]});
+  const lineDL = (color, align)=>({display:true, anchor:'end', align:align, color:color, font:{size:9, weight:'bold'},
+      backgroundColor:'rgba(255,255,255,.75)', borderRadius:2, padding:1,
+      formatter:v=>v==null?null:v.toFixed(1)+'%'}); /*V327*/
+  const pv = v => v==null ? '—' : (v>=0?'+':'')+v.toFixed(1)+'%';
+  const cls = v => v==null ? '' : (v>=0?'up':'down');
+  let html = '';
+  const built = [];
+  for(const it of show){
+    const w = it.win; if(!w || !w.rows.length) continue;
+    const mi = it.mi, nm = DICT.maker[mi], pid = 'c-mkmkr-'+mi;
+    const SUM = k => w.rows.reduce((a,r)=>a+(r[k]||0),0);
+    const hasSuv = SUM('suvB')>0;
+    built.push(it);
+    /*V332 图B「同比 YoY」标题行右侧的两个指标；复用 pv()（1 位小数 + 正号、null→'—'）
+      与 cls()（涨红跌绿：var(--up)/var(--down)），与顶部「最新月 · 品牌同比」同一套视觉语言*/
+    const _yoy = w.yoy || {};
+    const yoyStat = '<span class="ch-bstat">'
+      + '<span>'+T('mkt.mkrYoyWin')+' <b class="'+cls(_yoy.win)+'">'+pv(_yoy.win)+'</b></span>'
+      + '<span>'+T('mkt.mkrYoyYtd')+' <b class="'+cls(_yoy.ytd)+'">'+pv(_yoy.ytd)+'</b></span>'
+      + '</span>';
+    /*V318 空间再分配：删 eyebrow（与 h3 语义重复，−19px）；图A 上面板 110→172、
+       下面板 135→236（面板内图例搬去 h4 行 + 回收的余量）；两面板间 1px 分隔线 + 6px 间距，
+       避免上下两块连成一片；图B 210→140；洞察与口径说明收进默认折叠的 <details>。*/
+    html += '<div class="card" data-mkmkr="'+mi+'">'
+      + '<h3><span class="mkr-tt">'+nm+' '+T('mkt.mkrT')+'</span><span class="sub">'+T('mkt.mkrS')+'</span></h3>'
+      + '<div class="ch-kpis" id="'+pid+'-kpis"></div>'
+      + '<div class="ch-block"><div class="ch-h4 ch-h4row"><span>'+T('mkt.mkrA')+(hasSuv?'':' — '+T('mkt.mkrNoSuv'))+'</span>'
+      + '<span style="display:inline-flex;align-items:baseline;gap:14px;flex-wrap:wrap">'
+      + '<span class="ch-leg">'+chLegHtml(hasSuv?[[MKR_COLORS.brand,false,T('mkt.mkrShrMkt')],[MKR_COLORS.shrSuv,true,T('mkt.mkrShrSuv')]]:[[MKR_COLORS.brand,false,T('mkt.mkrShrMkt')]])+'</span>'
+      + '<span class="ch-leg ch-leg-sep" id="'+pid+'-legB"></span>'
+      + '</span></div>'
+      + '<div style="display:flex;flex-direction:column">'
+      + '<div class="chart-box" style="height:172px"><canvas id="'+pid+'-ashr"></canvas></div>'
+      + '<div class="chart-box" style="height:176px;margin-top:6px"><canvas id="'+pid+'-A"></canvas></div>'
+      + '</div></div>'
+      + '<div class="ch-block"><div class="ch-h4 ch-h4row"><span>'+T('mkt.mkrB')+'</span><span class="ch-leg">'+chLegHtml([[MKR_COLORS.brandGrn,false,nm],[MKR_COLORS.mkt,false,T('mkt.cheryMkt')],[MKR_COLORS.suv,true,T('mkt.cherySuv')]])+'</span></div><div class="ch-grid">'
+      + '<div><div class="ch-h4 ch-h4row"><span>'+T('mkt.cheryByoy')+'</span>'+yoyStat+'</div><div class="chart-box" style="height:220px"><canvas id="'+pid+'-B1"></canvas></div></div>'
+      + '<div><div class="ch-h4">'+T('mkt.cheryBmom')+'</div><div class="chart-box" style="height:220px"><canvas id="'+pid+'-B2"></canvas></div></div>'
+      + '</div></div>'
+      + '<div class="ch-more">'   /*V321 去折叠、去标题：洞察与口径说明常显*/
+      + '<div class="ch-insight" id="'+pid+'-ins"></div>'
+      + '<div class="ch-note">'+T('mkt.mkrN')+'</div></div>'
+      + '</div>';
+  }
+  wrap.innerHTML = (trunc ? '<div class="mkmkr-trunc">'+T('mkt.mkrTrunc').replace('{n}',MKR_MAX_CARDS).replace('{t}',String(scored.length))+'</div>' : '') + html;
+  for(const it of built){
+    const w = it.win;
+    const rows = w.rows, labels = rows.map(r=>mkrLbl(r.ym));
+    const LAST = rows[rows.length-1];
+    const SUM = k => rows.reduce((a,r)=>a+(r[k]||0),0);
+    const hasSuv = SUM('suvB')>0;
+    const mi = it.mi, nm = DICT.maker[mi], pid = 'c-mkmkr-'+mi;
+    const barEl = document.getElementById(pid+'-A'); if(!barEl) continue;
+    /* 图A 上面板：市占率线（SUV 判定 = 窗口内该品牌 SUV 注册量>0） */
+    /* V318 纵轴先算：选择性标注要用它的跨度把「两条线的间距」换算成像素 */
+    const _sv=rows.flatMap(r=>[r.shrMkt,r.shrSuv]).filter(v=>v!=null&&isFinite(v)); /*V309G 纵轴自适应*/
+    const _sMax=_sv.length?Math.max(..._sv):100, _sMin=_sv.length?Math.min(..._sv):0;
+    const _sPad=Math.max((_sMax-_sMin)*0.25,_sMax*0.18,2);
+    const _sLo=Math.max(0,_sMin-_sPad), _sHi=_sMax+_sPad;
+    const _sSpan=Math.max(_sHi-_sLo,1e-6);
+    const mktArr=rows.map(r=>r.shrMkt), suvArr=rows.map(r=>r.shrSuv);
+    /* V318 选择性标注：13 个月 × 2 条线 = 26 个标签塞进一张矮面板必然互叠
+       （probe_mkt_space.js 实测 5 对重叠、最大 oy=13px，而标签本身才 11px 高）。
+       每条线只标「末月 / 首月 / 该线最大值 / 该线最小值 / 最大环比拐点」≤5 个 x 位置；
+       同一 x 上两条线的像素间距 < 14px（≈一个标签高）时，SUV 线让位，只留主线标签。*/
+    const labelIdx=(arr,cap)=>{
+      const n=arr.length; if(!n) return new Set();
+      let iMax=-1,vMax=-Infinity,iMin=-1,vMin=Infinity,iJump=-1,vJump=-1,pv=null;
+      arr.forEach((v,i)=>{
+        if(v==null||!isFinite(v)){ pv=null; return; }
+        if(v>vMax){vMax=v;iMax=i;} if(v<vMin){vMin=v;iMin=i;}
+        if(pv!=null){ const d=Math.abs(v-pv); if(d>vJump){vJump=d;iJump=i;} }
+        pv=v;
+      });
+      const set=new Set();
+      [n-1,0,iMax,iMin,iJump].forEach(i=>{ if(i>=0 && set.size<cap) set.add(i); });
+      return set;
+    };
+    /* V319 名额 5→3：V318 实测每条线 5 个名额时实际落 9 个标签（需求要 4~5 个）。
+       优先级 = 末月 → 首月 → 该线最大值 → 该线最小值 → 最大环比拐点，取前 3；9→~5 个。*/
+    /* V321 全量标注 + 上下分侧（用户 09-16：13 个月默认全标；上方的折线标签在折线上方、
+       下方的折线标签在折线下方）。规则 = 同一 x 上「值大的那条线」标签朝上、「值小的」朝下，
+       于是两个标签永远分居两条线的**外侧** —— 即便两线贴合到 1px 也不会互叠，
+       比 V318/V319 的「筛 x 位置 + 让位」信息更全且不丢点。*/
+    const _mkOwn=(arr,other)=>arr.map((v,i)=>{
+      const o=other?other[i]:null;
+      return !(o!=null&&isFinite(o)&&isFinite(v)&&v<o);   /*true = 本线在该 x 更高 → 标签朝上*/
+    });
+    const OWN_MKT=_mkOwn(mktArr, hasSuv?suvArr:null);
+    const OWN_SUV=_mkOwn(suvArr, mktArr);
+    /* align 在 datalabels 2.2.0 里是可脚本化选项 → 可以逐点决定朝上/朝下 */
+    const dlSide=(own,color,yid)=>Object.assign(lineDL(color,'top'),{
+      align:(ctx)=>{
+        const ch=ctx.chart, ca=ch.chartArea, sc=ch.scales[yid||'y1'], v=ctx.dataset.data[ctx.dataIndex];
+        const up=own[ctx.dataIndex];
+        if(!sc||v==null||!isFinite(v)) return up?'top':'bottom';
+        const py=sc.getPixelForValue(v), H=13;   /* 标签盒高 13px */
+        return up ? (py-H<ca.top?'bottom':'top') : (py+H>ca.bottom?'top':'bottom');
+      },
+      formatter:(v)=>(v==null||!isFinite(v))?null:v.toFixed(1)+'%'
+    });
+    /* labelIdx / dlSel（V318/V319 选择性标注）暂留不再引用，便于回退。*/
+    const shrDS = [Object.assign(mkLine(T('mkt.mkrShrMkt'), mktArr, MKR_COLORS.brand, [], 1, 'y1'), {datalabels:dlSide(OWN_MKT, MKR_COLORS.brand, 'y1')})];
+    if(hasSuv) shrDS.push(Object.assign(mkLine(T('mkt.mkrShrSuv'), suvArr, MKR_COLORS.shrSuv, [5,4], 2, 'y1'), {datalabels:dlSide(OWN_SUV, MKR_COLORS.shrSuv, 'y1')}));
+    destroyChart(pid+'-ashr');
+    charts[pid+'-ashr'] = new Chart(document.getElementById(pid+'-ashr'), {
+      type:'line',
+      data:{labels:labels, datasets:shrDS},
+      options:{responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index', intersect:false},
+        plugins:{legend:{display:false},
+          tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y==null?'—':c.parsed.y.toFixed(1)+'%')}}},
+        scales:{x:{stacked:true, offset:true, ticks:{display:false}, grid:{display:false}, border:{display:false}},
+          y:{display:true, ticks:{display:false}, grid:{display:false}, border:{display:false}, afterFit:s=>{s.width=44}},
+          y1:{position:'right', beginAtZero:false, min:_sLo, max:_sHi, afterFit:s=>{s.width=44}, /*V309G 纵轴自适应*/
+              title:{display:false}, ticks:{display:false}, grid:{display:false}}}}
+    });
+    /* 图A 下面板（V312）：车型堆叠柱 = 窗口累计 Top4 车型 + 其他；
+       柱顶浅灰标签 = 该厂家本月总销量（挂在一条透明折线上，见 CHERY 集团模块同款做法） */
+    const stk = mkrTopModels(mi, rows.map(r=>r.ym), T('mkt.other'));
+    /* V318 柱图图例原为 Chart.js 底部横排（独吞 31px：canvas 135px 时 chartArea 只剩 72px）。
+       搬到 h4 行做成 HTML 图例，零占用，31px 全部还给绘图区。*/
+    const legB = document.getElementById(pid+'-legB');
+    if(legB) legB.innerHTML = stk.map(o=>'<span class="ch-leg-i"><span class="ch-leg-sq" style="background:'+o.color+'"></span>'
+      + String(o.name).replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>').join('');
+    destroyChart(pid+'-A');
+    charts[pid+'-A'] = new Chart(barEl, {
+      data:{labels:labels, datasets: stk.map(o=>({
+          type:'bar', label:o.name, data:o.data, backgroundColor:o.color, stack:'g',
+          yAxisID:'y', order:3, barPercentage:.78, categoryPercentage:.86
+        })).concat([
+        Object.assign(mkLine(T('mkt.mkrTotal'), rows.map(r=>r.sales), 'transparent', [], 0),
+          {datalabels:{display:true, anchor:'end', align:'top', offset:2, color:'#9AA3AE',
+                       font:{size:11.5, weight:'bold'}, formatter:v=>v>0?fmt(v):null}})
+      ])},
+      options:{responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index', intersect:false},
+        plugins:{legend:{display:false},   /*V318 图例已搬进 h4 行（#...-legB）*/
+          tooltip:{callbacks:{label:c=>c.dataset.label+': '+fmt(c.parsed.y)+' '+T('mkt.cheryUnit')}}},
+        scales:{x:Object.assign({stacked:true}, AXL()),
+          y:{position:'left', grace:'8%', afterFit:s=>{s.width=44}, title:{display:false},
+             ticks:{display:false}, grid:{display:false}},
+          y2:{position:'right', display:true, ticks:{display:false}, grid:{display:false}, border:{display:false}, afterFit:s=>{s.width=44}}}}
+    });
+    /* 图B：小多倍 YoY / MoM —— 三线 = 品牌 / 乘用车大盘 / SUV 大盘 */
+    const CMP = [
+      [nm, 'sales', MKR_COLORS.brandGrn, []],
+      [T('mkt.cheryMkt'), 'mkt', MKR_COLORS.mkt, []],
+      [T('mkt.cherySuv'), 'suv', MKR_COLORS.suv, [5,4]]
+    ];
+/*V328*/ /* 图B 标注：三条折线各标 最高点 / 最低点 / 最近一个月。
+   同 x 的标签用「像素级装箱」排布：按锚点 y 升序逐个尝试放上方，撞了放下方，再撞往下顺延，
+   于是同一 x 的标签盒两两不相交；相邻 x 相距远大于标签宽，横向也不会相交。*/
+     const _bMark = (arr)=>{
+  const s=new Set(), n=arr.length; if(!n) return s;
+  let iMax=-1, iMin=-1, vMax=-Infinity, vMin=Infinity;
+  arr.forEach((v,i)=>{ if(v==null||!isFinite(v)) return;
+    if(v>vMax){vMax=v;iMax=i;} if(v<vMin){vMin=v;iMin=i;} });
+  if(iMax>=0) s.add(iMax);
+  if(iMin>=0) s.add(iMin);
+  s.add(n-1);
+  return s;
+};
+     const _bAxis = (ms)=>{
+  const f=ms.flat().filter(v=>v!=null&&isFinite(v));
+  const hi=f.length?Math.max(...f):1, lo=f.length?Math.min(...f):0;
+  const pad=Math.max((hi-lo)*0.20, Math.abs(hi)*0.05, 3);
+  return [lo-pad, hi+pad];
+};
+     const _bPkBox = 15;   /* 标签盒高 13px + 2px 呼吸 */
+     const _bPack = (ch, j, _bms, _bmk)=>{
+  const H=_bPkBox, ca=ch.chartArea;
+  const key='p'+j+'_'+Math.round(ca.top)+'_'+Math.round(ca.bottom);
+  if(!ch.__bp) ch.__bp={};
+  if(ch.__bp[key]) return ch.__bp[key];
+  const at=[];
+  _bms.forEach((t,k)=>{ if(_bmk[k].has(j) && t[j]!=null) at.push({k:k, y:ch.scales.y.getPixelForValue(t[j])}); });
+  at.sort((a,b)=>a.y-b.y);
+  const tops=at.map(o=>o.y-H);
+  for(let i=1;i<tops.length;i++) if(tops[i]<tops[i-1]+H) tops[i]=tops[i-1]+H;
+  const over=(tops.length?tops[tops.length-1]+H:0)-ca.bottom;
+  if(over>0){
+    for(let i=0;i<tops.length;i++) tops[i]-=over;
+    if(tops[0]<ca.top){
+      const d=ca.top-tops[0];
+      for(let i=0;i<tops.length;i++) tops[i]+=d;
+      for(let i=1;i<tops.length;i++) if(tops[i]<tops[i-1]+H) tops[i]=tops[i-1]+H;
+    }
+  }
+  const m={};
+  at.forEach((o,ix)=>{ m[o.k]={y:o.y, cy:tops[ix]+H/2}; });
+  ch.__bp[key]=m;
+  return m;
+};
+    const pctChart = (id, suf) => {
+      destroyChart(id);
+      const _bms = CMP.map(L=>rows.map(r=>r[L[1]+suf]));
+      const _bmk = _bms.map(_bMark);
+      const _bax = _bAxis(_bms);
+      const _bsd = _bms.map((s,i)=>s.map((v,j)=>(v==null||!_bmk[i].has(j))?null:1));
+      charts[id] = new Chart(document.getElementById(id), {
+        data:{labels:labels, datasets:CMP.map((L,i)=>Object.assign(mkLine(L[0], _bms[i], L[2], L[3], i), {datalabels:{
+          display:true, align:'center', color:L[2], font:{size:9, weight:'bold'},
+          backgroundColor:'rgba(255,255,255,.82)', borderRadius:2, padding:1,
+          offset:(ctx)=>{ const o=_bPack(ctx.chart, ctx.dataIndex, _bms, _bmk)[ctx.datasetIndex]; return {x:0, y:o ? Math.round(o.cy-o.y) : 0}; },
+          formatter:(v,ctx)=>(v==null||_bsd[ctx.datasetIndex][ctx.dataIndex]==null)?null:v.toFixed(1)+'%'}}))},
+        options:{responsive:true, maintainAspectRatio:false,
+          interaction:{mode:'index', intersect:false},
+          plugins:{legend:{display:false},
+            tooltip:{callbacks:{label:c=>c.dataset.label+': '+(c.parsed.y==null?'—':c.parsed.y.toFixed(1)+'%')}}},
+          scales:{x:Object.assign({offset:true}, AXL()),
+            y:{min:_bax[0], max:_bax[1], ticks:{font:{size:10}, callback:v=>(Math.round(v*10)/10)+'%', color:c=>c.tick&&c.tick.value<0?'#A93226':themeInk()}, grid:{color:themeGrid()},
+               title:{display:true, text:T(suf==='YoY'?'mkt.cheryYoyT':'mkt.cheryMomT'), font:{size:10}}}}
+        }
+      });
+    };
+    pctChart(pid+'-B1','YoY'); pctChart(pid+'-B2','MoM');
+    /* KPI + 洞察 */
+    const kEl = document.getElementById(pid+'-kpis');
+    if(kEl){
+      /*V330 YTD 占比：年度累计 ÷ 同期大盘（或 SUV 大盘）累计*/
+      const ytdShr = (a,b)=>(a==null||!b||!isFinite(a/b))?'—':(a/b*100).toFixed(1)+'%';
+      /*V342 KPI 同比小字（与集团卡 V338 同款）：前 6 项同比 + 份额项 pp；助手与集团卡相同实现（V338 定义在 renderMktChery 作用域内，就近复制）*/
+      const subCls = v => (v==null||Math.abs(v)<0.005) ? '' : v>0 ? ' k-up' : ' k-dn';
+      const subPct = v => v==null ? '—' : (v>=0?'+':'')+v.toFixed(1)+'%';
+      const subPp  = v => v==null ? '—' : Math.abs(v)<0.005 ? '±0.0pp' : Math.abs(v)<0.095 ? (v>0?'+':'')+v.toFixed(2)+'pp' : (v>0?'+':'')+v.toFixed(1)+'pp';
+      const subHtml = (lb,v,f) => '<div class="ksub"><span class="lb">'+lb+'</span><span class="sv'+subCls(v)+'">'+f(v)+'</span></div>';
+      const yoy = w.yoy; /*V342（同 V339：作用域内为 w.yoy）*/
+      const cells = [
+        [T('mkt.mkrKWinB'), fmt(SUM('sales')), '', subHtml(T('mkt.ksubYoy'), yoy.brand.win, subPct)],
+        [T('mkt.cheryKWinM'), fmt(SUM('mkt')), '', subHtml(T('mkt.ksubYoy'), yoy.mkt.win, subPct)],
+        [T('mkt.cheryKWinS'), fmt(SUM('suv')), '', subHtml(T('mkt.ksubYoy'), yoy.suv.win, subPct)],
+        [T('mkt.mkrKYtdB'), fmt(w.ytd&&w.ytd.brand), '', subHtml(T('mkt.ksubYoy'), yoy.brand.ytd, subPct)],
+        [T('mkt.cheryKYtdM'), fmt(w.ytd&&w.ytd.mkt), '', subHtml(T('mkt.ksubYoy'), yoy.mkt.ytd, subPct)],
+        [T('mkt.cheryKYtdS'), fmt(w.ytd&&w.ytd.suv), '', subHtml(T('mkt.ksubYoy'), yoy.suv.ytd, subPct)],
+        [T('mkt.cheryKYtdShrM'), ytdShr(w.ytd&&w.ytd.brand, w.ytd&&w.ytd.mkt), '', subHtml(T('mkt.ksubShr'), yoy.shrD.mkt, subPp)]
+      ];
+      /*V330 YTD · 占 SUV 仅在有 SUV 的品牌显示（与最新月 · 占 SUV 同规则）；
+        分子 = 品牌自身 SUV 年度累计（suvB），与最新月口径一致*/
+      if(hasSuv) cells.push([T('mkt.cheryKYtdShrS'), ytdShr(w.ytd&&w.ytd.suvB, w.ytd&&w.ytd.suv), '', subHtml(T('mkt.ksubShr'), yoy.shrD.suv, subPp)]);
+      cells.push(
+        [T('mkt.mkrKLastB'), fmt(LAST.sales), '', ''],
+        [T('mkt.mkrKLastYoy'), pv(LAST.salesYoY), cls(LAST.salesYoY), ''],
+        [T('mkt.mkrKLastMom'), pv(LAST.salesMoM), cls(LAST.salesMoM), ''],
+        [T('mkt.mkrKShrMkt'), LAST.shrMkt==null?'—':LAST.shrMkt.toFixed(1)+'%', '', '']
+      );
+      if(hasSuv) cells.push([T('mkt.mkrKShrSuv'), LAST.shrSuv==null?'—':LAST.shrSuv.toFixed(1)+'%', '', '']);
+      kEl.innerHTML = cells.map(c=>'<div class="ch-kpi'+(c[2]?(c[2]==='up'?' b-up':' b-dn'):'')+'"><div class="k">'+c[0]+'</div><div class="v'+(c[2]?' '+c[2]:'')+'">'+c[1]+'</div>'+(c[3]||'')+'</div>').join('');
+    }
+    const iEl = document.getElementById(pid+'-ins');
+    if(iEl){
+      const tpl = hasSuv ? T('mkt.mkrInsSuv') : T('mkt.mkrIns');
+      iEl.innerHTML = tpl
+        .replace('{range}', mkrLbl(w.start)+' – '+mkrLbl(w.end))
+        .replace('{m}', nm)
+        .replace('{g}', fmt(SUM('sales'))).replace('{mm}', fmt(SUM('mkt'))).replace('{s}', fmt(SUM('suv')))
+        .replace('{sg}', SUM('mkt')>0?(SUM('sales')/SUM('mkt')*100).toFixed(1):'0')
+        .replace('{ss}', SUM('suv')>0?(SUM('suvB')/SUM('suv')*100).toFixed(1):'0') /*V309G 修复：分子=品牌 SUV*/
+        .replace('{lm}', mkrLbl(LAST.ym)).replace('{lv}', fmt(LAST.sales))
+        .replace('{ly}', pv(LAST.salesYoY)).replace('{lq}', pv(LAST.salesMoM));
+    }
+  }
+}
+
+
+/*V309B/D: 上面板图例收进右轴竖线内侧——Chart.js 顶部图例横排占满内容宽，
+  align:'end' 文字右端越过 y1 竖线（行右缘恒定 legend.right-37，空占位 item/空格/maxWidth
+  实测均不影响布局，方案证伪）；改为 afterUpdate 将 legend 整体（含点击热区）左移到
+  chartArea.right-12，幂等（第二次 afterUpdate 时 off<=1 不再移动）。*/
+const MKR_LEG_INSET_OFF = 12;
+const LegendInsetPlugin = {
+  id: 'legendInset',
+  afterUpdate(chart){
+    const lg = chart.legend;
+    const o = chart.options.plugins && chart.options.plugins.legend;
+    if(!lg || !o || !o.labels || !o.labels._inset) return;
+    const off = lg.right - (chart.chartArea.right - MKR_LEG_INSET_OFF);
+    if(off > 1){
+      lg.left -= off; lg.right -= off;
+      (lg.legendHitBoxes || []).forEach(h => { if (typeof h.left === 'number') h.left -= off; });
+    }
+  }
+};
+Chart.register(LegendInsetPlugin);
+function legendInside(base){
+  return Object.assign({}, base, {_inset:true});
+}
+
 function renderMkt(){
   const [ymA1,ymA2]=readYmRange('mkt-ymA');
   const [ymB1,ymB2]=readYmRange('mkt-ymB');
@@ -11236,6 +12357,8 @@ function renderMkt(){
   renderMktCmp(PA,PB,labelA,labelB);
   renderMktHHI(PB);
   renderMktNevMaker(ymB1,ymB2,ymA1,ymA2);
+  renderMktChery(ymB2);
+  renderMktMakerCards(ymB2);
   // ⑤ Treemap 下钻提示（厂家→车型）
   const dh=document.getElementById('mkt-tree-hint');
   if(dh){ const ds=mslicerVals('mkt-maker'); dh.textContent = ds.length===1 ? T('mkt.drillOn').replace('{m}',DICT.maker[ds[0]]||'') : ''; }
@@ -11268,7 +12391,7 @@ function renderMkt(){
   setSmall('mkt-kpi-bev-type', s3.map(k=>{ const b=sB.byType[k]; return [k, b&&b.tot>0 ? (b.bev/b.tot*100).toFixed(1)+'%' : '-']; }));
   // 非国民品牌份额：三类各自非国民%
   setSmall('mkt-kpi-local-type', s3.map(k=>{ const b=sB.byType[k]; return [k, b&&b.tot>0 ? ((b.tot-b.local)/b.tot*100).toFixed(1)+'%' : '-']; }));
-  renderMktInsights(sA,sB,ymB1,ymB2);
+  renderMktInsights(sA,sB,ymA1,ymA2,ymB1,ymB2);   /*V322 需基准期区间做车型层/增减量对比*/
 }
 // V88：分析年份 → 对比期快捷预设（今年/去年/近12个月/全部）——设置 ymB 并刷新
 function applyMktPreset(){
@@ -11860,6 +12983,623 @@ try{document.documentElement.classList.remove('v298-lang-en');}catch(e){}
   };
 })();
 
+</script>
+<script>
+/* MMF-V308-JS-START */
+/* ============ V308: 厂家 × 车型 × 燃料 结构（分厂家分析 tab 底部） ============ */
+(function(){
+if (typeof CUBE_MD === 'undefined' || !CUBE_MD || !CUBE_MD.length) return;
+if (typeof DICT === 'undefined' || !DICT.maker) return;
+if (!document.getElementById('mmf-root')) return;
+
+var MM_ = {};
+var MODEL_MAKER_ = (typeof MODEL_MAKER !== 'undefined') ? MODEL_MAKER : (DATA.model_maker || null);
+var MCTR_ = (typeof MCTR !== 'undefined') ? MCTR : DATA.maker_country;
+var HAS_PRICE = (typeof priceMatches === 'function');
+function L_(zh, en){ return (typeof LANG !== 'undefined' && LANG === 'en') ? en : zh; }
+
+// 覆盖了车型级数据的厂家（maker idx -> 1）
+var COVERED = {};
+for (var k = 0; k < CUBE_MD.length; k++){ var _mi = MODEL_MAKER_[CUBE_MD[k][1]]; if (_mi !== undefined) COVERED[_mi] = 1; }
+
+// 全部月份升序 + 走势口径（近 12 个月 / 当前年度）
+var YMS = (function(){ var s = {}, out = [];
+  for (var k = 0; k < CUBE_MD.length; k++) s[CUBE_MD[k][0]] = 1;
+  for (var y in s) out.push(+y); out.sort(function(a,b){ return a-b; }); return out; })();
+var TR_MONTHS = YMS.slice(-12);
+var CUR_YEAR = Math.floor(YMS[YMS.length-1] / 100);
+var YTD_MONTHS = YMS.filter(function(y){ return Math.floor(y/100) === CUR_YEAR; });
+
+// NEV = HEV + BEV + PHEV（按 DICT.fuel 索引判定，与工具口径一致）
+var NEV_FUELS = {};
+DICT.fuel.forEach(function(f, i){ if (f === 'HEV Hybrid' || f === 'BEV Electric' || f === 'PHEV Plug-in') NEV_FUELS[i] = 1; });
+var FUEL_SHORT = {'ICE Petrol':'ICE','HEV Hybrid':'HEV','BEV Electric':'BEV','PHEV Plug-in':'PHEV','Diesel':'Diesel'};
+function fShort(f){ return FUEL_SHORT[f] || f.split(' ')[0]; }
+
+var EXP = {};            // 展开状态（key = 厂家名）
+var MAX_ROWS = 12;
+var VIEW = 'both', SORT = 'vol';
+
+function fmt(n){ return n == null ? '-' : n.toLocaleString('en-US'); }
+function pct(a, b){ return b > 0 ? a/b*100 : 0; }
+function fmtPct(v){ return (v >= 1 ? v.toFixed(1) : v > 0 ? v.toFixed(2) : '0') + '%'; }
+/*V314 条内数据标签专用：整数占比（100% 不写成「100.0%」）。fmtPct 保留一位小数，
+  矩阵列 / 悬停 title / 图例 chips 继续用它，本次不动。*/
+function fmtPct0(v){ return Math.round(v) + '%'; }
+/*V317A 自适应纵轴：按数据范围取整格上下界（step ∈ {1,2,2.5,5}×10^k），
+   上下各留 20% 余量。全体近乎常量时给 0.8pp 的最小窗口，避免把 0.0/0.1% 级别的
+   抖动放大成假趋势。返回 [lo, hi]。 */
+function fmtAx(v){
+  var a = Math.abs(v);
+  return (a < 10 && a % 1 !== 0) ? String(+v.toFixed(2)) : String(Math.round(v));
+}
+function nevAxis(lo, hi){
+  var span = hi - lo;
+  var pad = Math.max(span * 0.20, 0.30);
+  var a = Math.max(0, lo - pad), b = Math.min(100, hi + pad);
+  var raw = (b - a) / 8;   /*V320 候选 5→8 格：步长更细，取整浪费的余量更少（实测振幅 +15%）*/
+  var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+  if (!isFinite(mag) || mag <= 0) mag = 1;
+  var n = raw / mag, step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10) * mag;
+  var A = Math.max(0, Math.floor(a / step) * step);
+  var B = Math.min(100, Math.ceil(b / step) * step);
+  if (B - A < 0.5){   /*V320 最小窗口 0.8→0.5pp：NEV≈0 的品牌（0.0–0.3%）窗口再小就是把噪声放大*/
+    A = Math.min(Math.max(0, A), Math.max(0, hi - 0.25));
+    B = Math.min(100, A + 0.5);
+    if (B - A < 0.5) A = Math.max(0, B - 0.5);
+  }
+  return [A, B];
+}
+function ymS(ym){ return (typeof ymShort === 'function') ? ymShort(ym) : String(ym); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function fColor(f){ return (typeof fuelColor === 'function') ? fuelColor(f) : '#A8A29E'; }
+
+/* ---------- 顶部筛选读取（复用 mk-* 切片器） ---------- */
+function sels(){
+  return {
+    mk: mslicerVals('mk-maker'), fu: mslicerVals('mk-fuel'), ty: mslicerVals('mk-type'),
+    co: mslicerVals('mk-colour'), cy: mslicerVals('mk-country'), pr: mslicerVals('mk-price')
+  };
+}
+
+/* ---------- 核心计算 ---------- */
+function compute(ym1, ym2){
+  var S = sels();
+  var byMaker = {}, trend = {}, trendNev = {}, usedFuels = {};
+  for (var k = 0; k < CUBE_MD.length; k++){
+    var r = CUBE_MD[k], ym = r[0], mdi = r[1], ti = r[2], fi = r[3], ci = r[4], n = r[5];
+    if (n <= 0) continue;
+    var mi = MODEL_MAKER_[mdi]; if (mi === undefined) continue;
+    if (!inSel(S.mk, mi) || !inSel(S.fu, fi) || !inSel(S.ty, ti) || !inSel(S.co, ci)) continue;
+    if (!inSel(S.cy, MCTR_[mi])) continue;
+    if (HAS_PRICE && !priceMatches(mdi, S.pr)) continue;
+    var t = trend[mi]; if (!t) trend[mi] = t = {};
+    t[ym] = (t[ym] || 0) + n;                        // 走势：不受区间影响，受其余筛选影响
+    if (NEV_FUELS[fi]){ var tn = trendNev[mi]; if (!tn) trendNev[mi] = tn = {}; tn[ym] = (tn[ym] || 0) + n; }
+    if (ym < ym1 || ym > ym2) continue;
+    var m = byMaker[mi]; if (!m) byMaker[mi] = m = {};
+    var mm = m[mdi]; if (!mm) m[mdi] = mm = {};
+    mm[fi] = (mm[fi] || 0) + n;
+    usedFuels[fi] = 1;
+  }
+  var list = [];
+  Object.keys(byMaker).forEach(function(mk){
+    mk = +mk;
+    var models = Object.keys(byMaker[mk]).map(function(dk){
+      dk = +dk; var fm = byMaker[mk][dk], total = 0, nev = 0, f;
+      for (f in fm){ total += fm[f]; if (NEV_FUELS[f]) nev += fm[f]; }
+      return { mdi: dk, name: DICT.model[dk], fm: fm, total: total, nev: nev, nevShare: pct(nev, total) };
+    });
+    models.sort(function(a,b){ return b.total - a.total; });
+    var total = 0, nev = 0, byFuel = {};
+    models.forEach(function(md){ total += md.total; nev += md.nev; for (var f in md.fm) byFuel[f] = (byFuel[f]||0) + md.fm[f]; });
+    list.push({ mi: mk, name: DICT.maker[mk], country: countryLabel(DICT.country[MCTR_[mk]]),
+                models: models, total: total, byFuel: byFuel, nev: nev, trend: { t: trend[mk] || {}, nev: trendNev[mk] || {} }, covered: !!COVERED[mk] });
+  });
+  list.sort(function(a,b){ return b.total - a.total; });
+  var fuels = DICT.fuel.map(function(f, i){ return i; }).filter(function(i){ return usedFuels[i]; });
+  return { list: list, fuels: fuels, mkSel: S.mk };
+}
+
+/* ---------- 渲染 ---------- */
+function sortModels(models){
+  var a = models.slice();
+  if (SORT === 'name') a.sort(function(x,y){ return x.name.localeCompare(y.name); });
+  else if (SORT === 'nev') a.sort(function(x,y){ return y.nevShare - x.nevShare || y.total - x.total; });
+  else a.sort(function(x,y){ return y.total - x.total; });
+  return a;
+}
+function luma(hex){
+  var m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return 0.5;
+  var v = parseInt(m[1], 16);
+  return (0.299*(v>>16 & 255) + 0.587*(v>>8 & 255) + 0.114*(v & 255)) / 255;
+}
+/*V314C 条内标签墨色：白字与深墨字各算一次 WCAG 对比度，取更高的一侧。
+  老判据 luma>0.62 在 HEV 青 #469DAC（BT.601 luma 仅 0.52）上给了白字，实测只有 3.14:1，
+  9px 小字发虚；改按 WCAG 择优后同一底色换成深墨 = 4.67:1。ICE 灰（深墨 4.51）/
+  Diesel 棕（白 8.63）/ PHEV 紫（白 6.93）判据不变。*/
+function relLum(hex){
+  var m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return 0.5;
+  var v = parseInt(m[1], 16), k = [0.2126, 0.7152, 0.0722], out = 0;
+  for (var i = 0; i < 3; i++){
+    var c = ((v >> (16 - 8*i)) & 255) / 255;
+    out += k[i] * (c <= 0.03928 ? c/12.92 : Math.pow((c + 0.055)/1.055, 2.4));
+  }
+  return out;
+}
+function inkOn(hex){
+  var L = relLum(hex);
+  /*V315 深墨用近黑 #14201E：浅墨 #3B3A36 在 BEV 绿上只有 3.45:1、HEV 青 3.62:1，
+    都够不到 AA；换 #14201E 后同为 5.07 / 5.32，ICE 灰也升到 6.63。
+    0.0628 = #14201E 的 relLum + 0.05。*/
+  return (1.05 / (L + 0.05)) >= ((L + 0.05) / 0.0628) ? '#FFFFFF' : '#14201E';
+}
+function barHtml(fm, total, fuels, inlinePct, barW100){
+  /* V314：三个视图都给「段内占比」标签（整数）。
+     100% 堆叠：条恒满轨，段像素 = 轨宽 × p%，沿用 ≥8% 的经验阈值。
+     绝对值堆叠：条长随销量变化，长尾条上标签会溢出 → 按 轨宽(≈1010px) × barW100% × p% 估算，
+     段像素 ≥26px 才画（阈值 barW100*p >= 260）。barW100 缺省时退化为只给 100% 堆叠上标签。 */
+  var bw = barW100 == null ? 0 : Math.min(barW100, 100);
+  return fuels.map(function(fi){
+    var v = fm[fi] || 0; if (!v) return '';
+    var p = pct(v, total), c = fColor(DICT.fuel[fi]);
+    var inner = '';
+    if (inlinePct ? (p >= 8) : (bw * p >= 260)){
+      inner = '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;white-space:nowrap;pointer-events:none;color:'
+        + inkOn(c) + ';text-shadow:0 0 2px rgba(128,128,128,.35)">' + fmtPct0(p) + '</span>';
+    }
+    return '<i style="position:relative;width:' + p.toFixed(3) + '%;background:' + c + '" title="'
+      + esc(DICT.fuel[fi]) + ' ' + fmt(v) + '（' + fmtPct(p) + '）">' + inner + '</i>';
+  }).join('');
+}
+/* V311：去掉绝对值视图的 4% 地板。
+   原 Math.max(4,…) 与 .mmf-bar{min-width:80px} 叠加后，所有占比 <8.7% 的车型一律
+   渲染成 80px —— 实测 Persona 8.4% / X70 6.9% / X90 4.7% / Iriz 4.0% / Exora 4.0%
+   五条长度完全相同，长尾量级被抹平。现下限定为 0.8%（配合 min-width:2px），
+   条只表达「有没有」，精确量级交给数字列、占比列与悬停。
+   fullScale=true 用于合计行：等于各车型之和，必然超出最大车型刻度。 */
+function barW(total, maxT, pctMode, fullScale){
+  return (pctMode || fullScale) ? 100 : Math.max(0.8, total/maxT*100);
+}
+function barStyle(total, maxT, pctMode, fullScale){
+  var w = barW(total, maxT, pctMode, fullScale);   /* V314：算式抽给 barHtml 判标签能否放下 */
+  return 'style="width:' + w.toFixed(2) + '%;max-width:100%"';
+}
+function chipsHtml(fm, total, fuels, nameOnly){
+  return fuels.filter(function(fi){ return fm[fi]; })
+    .sort(function(a,b){ return fm[b] - fm[a]; })
+    .map(function(fi){ return '<span class="fchip"><i style="background:' + fColor(DICT.fuel[fi]) + '"></i>'
+      + fShort(DICT.fuel[fi]) + (nameOnly ? '' : ' ' + fmtPct(pct(fm[fi], total))) + '</span>'; }).join('');
+}
+function summaryChips(byFuel, total, fuels){
+  return fuels.filter(function(fi){ return byFuel[fi]; })
+    .sort(function(a,b){ return byFuel[b] - byFuel[a]; })
+    .map(function(fi){ return '<span class="fchip"><i style="background:' + fColor(DICT.fuel[fi]) + '"></i>'
+      + fShort(DICT.fuel[fi]) + ' ' + fmtPct(pct(byFuel[fi], total)) + '</span>'; }).join('');
+}
+/* V311：所有行的条轨等宽。
+   原实现每行各自挂 .mmf-grid，末列 auto（构成明细 chips）随该行标签宽度变化，
+   把第 4 列 1fr（条轨）挤成逐行不等 —— 实测 PROTON：100% 堆叠 852.95~959.17px、
+   绝对值 758.48~919.61px（离散 11.1% / 17.5%），与标签列宽 40.8~147.0px
+   （绝对值 80.4~241.5px）完全互补，极差同为 106.2px。于是同样的占比在不同行
+   渲染出不同像素长度，条形图失去可比性。
+   现在行内不再放燃料标签：模块顶部 #mmf-legend 有完整图例、厂家卡顶部 totalBar
+   有构成明细 chips、悬停 title 有逐段「燃料 销量（占比）」，信息不丢。 */
+/*V344 车型列宽 = 本卡最长车名的实测文本宽（canvas measureText），64–150px 夹取：
+   消除「车型 ↔ MSRP」之间因 148px 定宽造成的空白。宽度经内联 grid-template-columns
+   逐行携带同一值，保证各行列起点一致（各行是独立 grid 容器，fit-content 会错位）。*/
+function mmfNameW(models){
+  try{
+    var cvs = document.createElement('canvas'), ctx = cvs.getContext('2d');
+    ctx.font = '12.5px ' + getComputedStyle(document.body).fontFamily;
+    var w = 0;
+    models.forEach(function(md){ w = Math.max(w, ctx.measureText(md.name || '').width); });
+    return Math.round(Math.min(Math.max(w + 6, 64), 150));
+  }catch(e){ return 148; }
+}
+function rowsHtml(models, fuels, makerKey, pctMode, makerTotal, nmCols){   /*V343 makerTotal；V344 nmCols=车型列实测宽*/
+  var expanded = !!EXP[makerKey];
+  var shown = expanded ? models : models.slice(0, MAX_ROWS);
+  var rest = models.slice(MAX_ROWS);
+  var maxT = 0;
+  models.forEach(function(md){ if (md.total > maxT) maxT = md.total; });   /* V311 fix：排序非 vol 时 models[0] 不是最大值 */
+  if (!maxT) maxT = 1;
+  var h = shown.map(function(md){
+    return '<div class="mmf-row mmf-grid" style="grid-template-columns:' + nmCols + '">'
+      + '<div class="mmf-name" title="' + esc(md.name) + '">' + esc(md.name) + '</div>'
+      + '<div class="mmf-sp">' + mmfPrice(md.mdi) + '</div>'
+      + '<div class="mmf-sp">' + mmfLen(md.mdi) + '</div>'
+      + '<div class="mmf-num">' + fmt(md.total) + '</div>'
+      + '<div class="mmf-pct">' + mmfShare(md.total, makerTotal) + '</div>'
+      + '<div class="mmf-pct">' + fmtPct(md.nevShare) + '</div>'
+      + '<div class="mmf-bar" ' + barStyle(md.total, maxT, pctMode) + '>' + barHtml(md.fm, md.total, fuels, pctMode, barW(md.total, maxT, pctMode)) + '</div>'
+      + '</div>';
+  }).join('');
+  if (rest.length && !expanded){
+    var rt = 0, rn = 0, rf = {};
+    rest.forEach(function(md){ rt += md.total; rn += md.nev; for (var f in md.fm) rf[f] = (rf[f]||0) + md.fm[f]; });
+    h += '<div class="mmf-row mmf-grid" style="border-top:1px dashed var(--line);grid-template-columns:' + nmCols + '">'
+      + '<div class="mmf-name" style="color:var(--sub)">' + L_('其他 ' + rest.length + ' 款', 'Others (' + rest.length + ')') + '</div>'
+      + '<div class="mmf-sp">—</div>'
+      + '<div class="mmf-sp">—</div>'
+      + '<div class="mmf-num">' + fmt(rt) + '</div>'
+      + '<div class="mmf-pct">' + mmfShare(rt, makerTotal) + '</div>'
+      + '<div class="mmf-pct">' + fmtPct(pct(rn, rt)) + '</div>'
+      + '<div class="mmf-bar" ' + barStyle(rt, maxT, pctMode) + '>' + barHtml(rf, rt, fuels, pctMode, barW(rt, maxT, pctMode)) + '</div>'
+      + '</div>';
+  }
+  /*V317A：「展开全部 / 收起」不再由本函数输出 —— 它原先是左列独占行，插在「其他 N 款」
+     与「合计」之间；render() 的左右对齐循环按**行号**配对，多出这一行会让其后的合计行
+     整体错开一整行高（车型数 >12 的厂家必现）。改由 renderMaker 挂在合计行之后。*/
+  return h;
+}
+/*V322 右侧矩阵新增三列（MSRP / 车长 / 销量占比）：规格与气泡图同源
+  （MODEL_PRICE = paultan MSRP 区间 [lo,hi]，MODEL_LENGTH = 车长 mm；缺数据出「—」）*/
+function mmfPrice(mdi){
+  try{
+    var p = MODEL_PRICE ? MODEL_PRICE[mdi] : null; if (!p) return '—';
+    return p[0] === p[1] ? ('RM' + (p[0]/1000).toFixed(0) + 'k')
+                         : ('RM' + (p[0]/1000).toFixed(0) + '-' + (p[1]/1000).toFixed(0) + 'k');
+  }catch(e){ return '—'; }
+}
+function mmfLen(mdi){ try{ var v = MODEL_LENGTH ? MODEL_LENGTH[mdi] : null; return v ? (fmt(v) + ' mm') : '—'; }catch(e){ return '—'; } }
+function mmfShare(v, tot){   /*占合计销量，不保留小数*/
+  if (!(tot > 0)) return '—';
+  var s = v / tot * 100;
+  if (v > 0 && s < 0.5) return '<1%';   /*V326 四舍五入会变 0%，但确实有销量*/
+  return Math.round(s) + '%';
+}
+function matrixHtml(maker, fuels){
+  var models = sortModels(maker.models);
+  var expanded = !!EXP[maker.name];
+  var shown = expanded ? models : models.slice(0, MAX_ROWS);
+  var rest = models.slice(MAX_ROWS);
+  var th = fuels.map(function(fi){
+    return '<th><span style="display:inline-flex;align-items:center;gap:4px"><i style="width:9px;height:9px;border-radius:2px;background:'
+      + fColor(DICT.fuel[fi]) + ';display:inline-block"></i>' + fShort(DICT.fuel[fi]) + '</span></th>';
+  }).join('');
+  function cell(v, rowTotal){
+    if (!v) return '<td class="zero">—</td>';
+    var s = pct(v, rowTotal);
+    return '<td class="cell" style="background:rgba(3,107,102,' + (s/100*0.16).toFixed(3) + ')"><b>' + fmt(v) + '</b><s>' + fmtPct(s) + '</s></td>';
+  }
+  var body = shown.map(function(md){
+    return '<tr><td><span class="mmf-nm">' + esc(md.name) + '</span></td>'
+      + fuels.map(function(fi){ return cell(md.fm[fi] || 0, md.total); }).join('')
+      + '<td style="color:var(--sub)">' + fmtPct(md.nevShare) + '</td></tr>';
+  }).join('');
+  if (rest.length && !expanded){
+    var rt = 0, rn = 0, rf = {};
+    rest.forEach(function(md){ rt += md.total; rn += md.nev; for (var f in md.fm) rf[f] = (rf[f]||0) + md.fm[f]; });
+    body += '<tr><td style="color:var(--sub)"><span class="mmf-nm">' + L_('其他 ' + rest.length + ' 款', 'Others (' + rest.length + ')') + '</span></td>'
+      + fuels.map(function(fi){ return cell(rf[fi] || 0, rt); }).join('')
+      + '<td style="color:var(--sub)">' + fmtPct(pct(rn, rt)) + '</td></tr>';
+  }
+  body += '<tr class="tot"><td><span class="mmf-nm">' + L_('合计', 'Total') + '</span></td>'
+    + fuels.map(function(fi){
+        var v = maker.byFuel[fi] || 0;
+        return '<td>' + fmt(v) + '<s style="display:block;font-size:9px;color:var(--sub);font-weight:400">' + fmtPct(pct(v, maker.total)) + '</s></td>';
+      }).join('')
+    + '<td>' + fmtPct(pct(maker.nev, maker.total)) + '</td></tr>';
+  /*V343 列序：车型 | 各燃料 | NEV 占比（MSRP/车长/销量占比 移入左表）*/
+  return '<table class="mmf-tbl"><thead><tr><th>' + L_('车型', 'Model') + '</th>'
+    + th + '<th>' + L_('NEV 占比', 'NEV') + '</th></tr></thead><tbody>' + body + '</tbody></table>';
+}
+function trendHtml(m){
+  if (!m.trend) return '';
+  var vals = TR_MONTHS.map(function(y){ return m.trend.t[y] || 0; });
+  var nevPct = TR_MONTHS.map(function(y, i){ return vals[i] ? (m.trend.nev[y] || 0) / vals[i] * 100 : 0; });
+  var max = Math.max.apply(null, vals.concat([1]));
+  var cols = TR_MONTHS.map(function(y, i){
+    var v = vals[i];
+    var h = v ? Math.max(3, Math.round(v/max*42)) : 2;
+    return '<div class="mmf-tcol" title="' + ymS(y) + '：' + fmt(v) + '">'
+      + '<b' + (v ? '' : ' style="visibility:hidden"') + '>' + (v >= 10000 ? (v/1000).toFixed(1).replace(/\.0$/,'') + 'k' : v) + '</b>'
+      + '<i style="height:' + h + 'px' + (v ? '' : ';background:#e2e8f0') + '"></i>'
+      + '<s>' + ymS(y) + '</s></div>';
+  }).join('');
+  /*V317A NEV 折线纵轴自适应。原实现只按**最大值**定标（下界恒为 0，且下限 60%），
+     品牌 NEV 占比在 0–60% 的满量程里只占一小段 —— 实测 O&J 12 个月从 4.2% 涨到
+     20.3%，折线在 44px 带高里只用了 7.7px（17.5%），看起来就是一条直线。
+     现改为按「有销量的月份」的真实取值范围定标，范围在标题行明示（纵轴 lo–hi%）。*/
+  var nLo = Infinity, nHi = -Infinity;
+  for (var ni = 0; ni < nevPct.length; ni++){
+    if (!vals[ni]) continue;                     // 无销量月份（NEV 占比恒 0）不参与定标
+    if (nevPct[ni] < nLo) nLo = nevPct[ni];
+    if (nevPct[ni] > nHi) nHi = nevPct[ni];
+  }
+  if (!isFinite(nLo)) { nLo = 0; nHi = 0; }
+  var axr = nevAxis(nLo, nHi), axLo = axr[0], axHi = axr[1];
+  var axSpan = Math.max(axHi - axLo, 1e-6);
+  var lineCells = nevPct.map(function(p, i){
+    var t = vals[i] ? Math.min(1, Math.max(0, (p - axLo) / axSpan)) : 0;
+    var y = 6 + t * 66;   // 映射到条带 6%–72% 高度带，顶部恒留标签空间（NEV 100% 不压标题）
+    return '<div><i style="bottom:' + y.toFixed(1) + '%" title="' + ymS(TR_MONTHS[i]) + ' NEV ' + fmtPct(p)
+      + L_('（纵轴 ' + fmtAx(axLo) + '–' + fmtAx(axHi) + '%）', ' (axis ' + fmtAx(axLo) + '–' + fmtAx(axHi) + '%)') + '"></i>'
+      + '<em style="bottom:calc(' + y.toFixed(1) + '% + 8px)">' + p.toFixed(1) + '%</em></div>';
+  }).join('');
+  var nevStrip = '<div class="mmf-tnev">'
+    + '<svg aria-hidden="true"><polyline fill="none" stroke="#B7791F" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points=""/></svg>'
+    + '<div class="mmf-tnev-row">' + lineCells + '</div>'
+    + '</div>';
+  var avg = Math.round(vals.reduce(function(a,b){ return a+b; }, 0) / TR_MONTHS.length);
+  var ytd = YTD_MONTHS.reduce(function(a,y){ return a + (m.trend.t[y] || 0); }, 0);
+  return '<div class="mmf-trend" title="' + esc(L_('口径：跟随燃料/车型等筛选，不受区间滑块影响', 'Follows fuel/type filters; independent of the period slider')) + '">'
+    + '<div class="mmf-trend-main">'
+    + '<div class="mmf-trend-lb">' + L_('近 12 个月销量走势', 'Last 12 months trend') + ' · ' + ymS(TR_MONTHS[0]) + ' – ' + ymS(TR_MONTHS[TR_MONTHS.length-1])
+    + L_(' · 折线 = NEV 占比', ' · line = NEV share')
+    + L_('（纵轴 ' + fmtAx(axLo) + '–' + fmtAx(axHi) + '%）', ' (axis ' + fmtAx(axLo) + '–' + fmtAx(axHi) + '%)') + '</div>'
+    + nevStrip
+    + '<div class="mmf-trend-chart">' + cols + '</div>'
+    + '</div>'
+    + '<div class="mmf-trend-stats">'
+    + '<div><div class="lb">' + L_('月平均销量', 'Monthly average') + '</div><b>' + fmt(avg) + '</b><s>' + L_('近 12 个月均值', '12-month mean') + '</s></div>'
+    + '<div><div class="lb">' + L_('年度累计', 'YTD total') + '</div><b>' + fmt(ytd) + '</b><s>'
+    + CUR_YEAR + (L_(' 年 1–', ' YTD (Jan–') + YTD_MONTHS.length + (L_(' 月', ')'))) + '</s></div>'
+    + '</div>'
+    + '</div>';
+}
+function soloMaker(name){
+  var idx = DICT.maker.indexOf(name);
+  var wrap = document.getElementById('mk-maker');
+  if (!wrap || idx < 0) return;
+  var target = null;
+  wrap.querySelectorAll('input').forEach(function(cb){
+    cb.checked = (+cb.value === idx);
+    if (+cb.value === idx) target = cb;
+  });
+  if (typeof updateMselBtn === 'function') updateMselBtn(wrap);
+  if (target) target.dispatchEvent(new Event('change', { bubbles: true }));   // → renderAnalysis('mk') → render()
+}
+MM_.soloMaker = soloMaker;
+
+function renderMaker(m, fuels){
+  var models = sortModels(m.models);
+  var mkKey = m.name;
+  var title = '<h3>' + esc(m.name)
+    + '<span class="sub">' + m.country + ' · ' + models.length + ' ' + L_('款车型', 'models')
+    + ' · ' + L_('区间', 'Period') + ' ' + fmt(m.total) + L_(' 辆', '') + ' · NEV ' + fmtPct(pct(m.nev, m.total)) + '</span>'
+    + (m.covered ? '' : '<span class="sub" style="color:#c0444e">⚠ ' + L_('该厂家暂无车型级数据', 'No model-level data for this maker') + '</span>')
+    + '<span class="mmf-cta" style="float:right" data-solo="' + esc(m.name) + '">' + L_('只看这家', 'Solo') + '</span></h3>';
+
+  var showMx = VIEW === 'both';
+  var pctMode = VIEW === 'pct';
+  /* V311 fix：maxT 必须取真最大值。原写法 models[0].total 只在 SORT==='vol' 时成立，
+     切到「按名称 / 按 NEV 占比」排序后基准会取错，整组条宽会偏大或偏小。 */
+  var maxT = 0;
+  models.forEach(function(md){ if (md.total > maxT) maxT = md.total; });
+  if (!maxT) maxT = 1;
+  /* V311：去掉末列（构成明细 chips）—— 它逐行宽度不同，会把第 4 列 1fr 条轨挤成
+     逐行不等宽（实测离散 11.1%/17.5%）。行内信息已由模块顶部 #mmf-legend、
+     厂家卡顶部 totalBar、矩阵视图与悬停 title 完整覆盖。 */
+  /*V317A 行对齐：这行原来带 inline `margin-top:4px`，把左侧每一行整体下推 4px，而右侧
+     .mmf-tbl 的表头贴在容器顶 → 逐行 Δtop = −4px（probe_mmf_align.js 实测 10/10 行偏移）。
+     下面 render() 的对齐循环另补一道容器顶补偿，双保险。*/
+  /*V344 车型列宽随最长车名收紧（64–150px），消除与 MSRP 间的大片空白*/
+  var nmCols = mmfNameW(models) + 'px 72px 66px 70px 54px 54px minmax(150px,1fr)';
+  var barBlock = '<div class="mmf-grid mmf-head" style="grid-template-columns:' + nmCols + '">'
+    + '<div>' + L_('车型', 'Model') + '</div>'
+    + '<div style="text-align:right">' + L_('MSRP', 'MSRP') + '</div>'
+    + '<div style="text-align:right">' + L_('车长', 'Length') + '</div>'
+    + '<div style="text-align:right">' + L_('区间销量', 'Sales') + '</div>'
+    + '<div style="text-align:right">' + L_('销量占比', 'Share') + '</div>'
+    + '<div style="text-align:right">' + L_('NEV 占比', 'NEV') + '</div>'
+    + '<div>' + L_('燃料结构', 'Fuel mix') + (pctMode
+        ? L_('（100% 堆叠）', ' (100%)')
+        : L_('（条宽 ∝ 体量）', ' (width ∝ volume)')) + '</div>'
+    + '</div>' + rowsHtml(models, fuels, mkKey, pctMode, m.total, nmCols)
+    + '<div class="mmf-row mmf-grid" style="border-top:2px solid #E2E8F0;background:#F8FAFC;grid-template-columns:' + nmCols + '">'
+    + '<div class="mmf-name" style="font-weight:700">' + L_('合计', 'Total')
+    // 合计 = 各车型之和，必然超出「最大车型」刻度，故按满刻度画并明确标注（原来是被 max-width 静默截断）
+    + (pctMode ? '' : '<span class="mmf-scale" title="' + L_('合计为各车型之和，超出单车型最大刻度，故按满刻度显示', 'Total sums all models and exceeds the largest-model scale, so it is drawn at full scale') + '">' + L_('满刻度', 'full scale') + '</span>')
+    + '</div>'
+    + '<div class="mmf-sp">—</div>'
+    + '<div class="mmf-sp">—</div>'
+    + '<div class="mmf-num">' + fmt(m.total) + '</div>'
+    + '<div class="mmf-pct" style="color:var(--ink);font-weight:600">' + mmfShare(m.total, m.total) + '</div>'
+    + '<div class="mmf-pct" style="color:var(--ink);font-weight:600">' + fmtPct(pct(m.nev, m.total)) + '</div>'
+    + '<div class="mmf-bar" ' + barStyle(m.total, maxT, pctMode, !pctMode) + '>' + barHtml(m.byFuel, m.total, fuels, pctMode, barW(m.total, maxT, pctMode, !pctMode)) + '</div>'
+    + '</div>'
+    /*V317A 「展开全部 / 收起」挂到合计行之后（左列独占行的必须位于**末尾**，否则左右
+       按行号配对会整体错位）。同时补「收起」入口：原来展开后 CTA 消失，EXP 只能靠
+       重渲染清掉，是个死胡同；收起行同样在末尾，不影响配对。*/
+    + (models.length > MAX_ROWS
+        ? '<div class="mmf-row mmf-more" style="border-top:none;text-align:right;padding:2px 2px 6px">'
+          + '<span class="mmf-cta" style="float:none" data-k="' + esc(mkKey) + '">'
+          + (EXP[mkKey] ? L_('收起 ▴', 'Collapse ▴')
+                        : L_('展开全部 ' + models.length + ' 款 ▾', 'Expand all ' + models.length + ' ▾'))
+          + '</span></div>'
+        : '');
+
+  var main;
+  if (showMx){
+    main = '<div class="mmf-split"><div class="mmf-left">' + barBlock + '</div>'
+      + '<div class="mmf-right" style="overflow-x:auto">' + matrixHtml(m, fuels) + '</div></div>';
+  } else {
+    main = barBlock;
+  }
+
+  var totalBar = '<div style="display:flex;align-items:center;gap:12px;margin:2px 0 10px">'
+    + '<div class="mmf-bar" style="flex:1;height:14px;max-width:420px">' + barHtml(m.byFuel, m.total, fuels, pctMode, pctMode ? 100 : 42) + '</div>'
+    + '<div class="mmf-chips">' + chipsHtml(m.byFuel, m.total, fuels, pctMode) + '</div>'
+    + '</div>';
+
+  return '<div class="card">' + title + totalBar + trendHtml(m) + main + '</div>';
+}
+
+function exportCSV(){
+  var ymB = readYmPair('mk')[1];
+  var st = compute(ymB[0], ymB[1]);
+  var fuels = st.fuels;
+  var head = [L_('厂家','Maker'), L_('国别','Country'), L_('车型','Model'), L_('区间销量','Sales'), 'NEV%'];
+  fuels.forEach(function(fi){ head.push(DICT.fuel[fi], DICT.fuel[fi] + ' %'); });
+  var lines = [head.join(',')];
+  st.list.forEach(function(m){
+    sortModels(m.models).forEach(function(md){
+      var row = [m.name, m.country, md.name, md.total, pct(md.nev, md.total).toFixed(2) + '%'];
+      fuels.forEach(function(fi){ var v = md.fm[fi] || 0; row.push(v, pct(v, md.total).toFixed(2) + '%'); });
+      lines.push(row.join(','));
+    });
+  });
+  var blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'maker-model-fuel_' + ymB[0] + '-' + ymB[1] + '.csv';
+  a.click();
+}
+MM_.exportCSV = exportCSV;
+
+/*V317A 左右逐行对齐（幂等）。左列 = .mmf-head + .mmf-row，右列 = 矩阵 thead/tbody 的 tr，
+   按行号 1:1 配对取较大高度，再把两侧首行的顶端拉平（补偿量累加，收敛后不再变）。
+   前提：两侧行数与行序一致 —— 所以左列的「展开全部/收起」必须挂在末行（见 renderMaker）。*/
+function alignSplitRows(out){
+  if (!out || !out.querySelectorAll) return;
+  out.querySelectorAll('.mmf-split').forEach(function(sp){
+    var lrows = sp.querySelectorAll('.mmf-left .mmf-head, .mmf-left .mmf-row');
+    var rrows = sp.querySelectorAll('.mmf-right .mmf-tbl thead tr, .mmf-right .mmf-tbl tbody tr');
+    var n = Math.min(lrows.length, rrows.length);
+    for (var i = 0; i < n; i++){
+      var h = Math.max(lrows[i].getBoundingClientRect().height, rrows[i].getBoundingClientRect().height);
+      if (!(h > 0)) continue;
+      lrows[i].style.height = h.toFixed(1) + 'px'; lrows[i].style.boxSizing = 'border-box';
+      rrows[i].style.height = h.toFixed(1) + 'px';
+    }
+    var l0 = lrows[0], r0 = rrows[0], lt = sp.querySelector('.mmf-left'), rt = sp.querySelector('.mmf-right');
+    if (l0 && r0 && lt && rt){
+      var d = +(r0.getBoundingClientRect().top - l0.getBoundingClientRect().top).toFixed(1);
+      if (Math.abs(d) >= 0.5){
+        var lp = (parseFloat(lt.style.paddingTop) || 0) + (d > 0 ? d : 0);
+        var rp = (parseFloat(rt.style.paddingTop) || 0) + (d < 0 ? -d : 0);
+        lt.style.paddingTop = lp.toFixed(1) + 'px';
+        rt.style.paddingTop = rp.toFixed(1) + 'px';
+      }
+    }
+  });
+}
+function render(){
+  var root = document.getElementById('mmf-root');
+  if (!root) return;
+  var ymB = readYmPair('mk')[1];
+  var st = compute(ymB[0], ymB[1]);
+  var list = st.list;
+  if (!st.mkSel.length) list = list.slice(0, 6);
+  var fuels = st.fuels;
+
+  // 覆盖度提醒
+  var uncovered = st.mkSel.map(function(i){ return DICT.maker[i]; })
+    .filter(function(nm){ return !COVERED[DICT.maker.indexOf(nm)]; });
+
+  var h = '';
+  h += '<h3>' + L_('厂家 × 车型 × 燃料结构', 'Maker × Model × Fuel Structure')
+    + '<span class="sub">' + L_('按顶部筛选栏与对比期区间（', 'Follows the top filters and the end-period range (')
+    + formatYm(ymB[0], ymB[1]) + L_('）；走势为近 12 个月 + 年度累计，不受区间影响', '); trend = last 12 months + YTD, independent of the range') + '</span></h3>';
+  h += '<div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-bottom:12px">'
+    + '<div class="kpi"><div class="mmf-kpi-l">' + L_('所选厂家', 'Makers') + '</div><div class="mmf-kpi-v" id="mmf-k-mk">—</div><div class="mmf-kpi-s" id="mmf-k-mk-s"></div></div>'
+    + '<div class="kpi accent2"><div class="mmf-kpi-l">' + L_('区间销量合计', 'Period sales') + '</div><div class="mmf-kpi-v" id="mmf-k-tot">—</div><div class="mmf-kpi-s" id="mmf-k-tot-s"></div></div>'
+    + '<div class="kpi"><div class="mmf-kpi-l">' + L_('车型数', 'Models') + '</div><div class="mmf-kpi-v" id="mmf-k-md">—</div><div class="mmf-kpi-s" id="mmf-k-md-s"></div></div>'
+    + '<div class="kpi accent2"><div class="mmf-kpi-l">' + L_('NEV 占比', 'NEV share') + '</div><div class="mmf-kpi-v" id="mmf-k-nev">—</div><div class="mmf-kpi-s" id="mmf-k-nev-s"></div></div>'
+    + '</div>';
+  h += '<div class="chip-row" id="mmf-view">'
+    + '<span class="chip' + (VIEW === 'both' ? ' on' : '') + '" data-v="both">' + L_('绝对值堆叠 + 矩阵', 'Stack + Matrix') + '</span>'
+    + '<span class="chip' + (VIEW === 'abs' ? ' on' : '') + '" data-v="abs">' + L_('仅绝对值堆叠', 'Stacked (abs)') + '</span>'
+    + '<span class="chip' + (VIEW === 'pct' ? ' on' : '') + '" data-v="pct">' + L_('仅 100% 堆叠', '100% stacked') + '</span>'
+    + '</div>';
+  h += '<div class="chip-row" style="margin-top:6px">'
+    + '<span class="hint">' + L_('排序', 'Sort') + '</span>'
+    + '<span class="chip' + (SORT === 'vol' ? ' on' : '') + '" data-s="vol">' + L_('按销量', 'By sales') + '</span>'
+    + '<span class="chip' + (SORT === 'name' ? ' on' : '') + '" data-s="name">' + L_('按名称', 'By name') + '</span>'
+    + '<span class="chip' + (SORT === 'nev' ? ' on' : '') + '" data-s="nev">' + L_('按 NEV 占比', 'By NEV share') + '</span>'
+    + '<span class="mmf-cta" id="mmf-csv-btn">⬇ ' + L_('导出当前视图 CSV', 'Export CSV') + '</span>'
+    + '</div>';
+  h += '<div class="mmf-legend" id="mmf-legend" style="margin-top:12px">'
+    + '<span style="font-weight:600;color:var(--ink)">' + L_('燃料图例', 'Fuel legend') + '</span>'
+    + fuels.map(function(i){ return '<span><i style="background:' + fColor(DICT.fuel[i]) + '"></i>' + DICT.fuel[i] + ' (' + fShort(DICT.fuel[i]) + ')</span>'; }).join('')
+    + '<span style="color:#94A3B8">' + L_('矩阵单元格：上=台数，下=占该车型比', 'Matrix cell: top = units, bottom = share of model') + '</span>'
+    + '<span style="color:#94A3B8">' + (VIEW === 'pct'
+        ? L_('条内数字＝该燃料占本车型比', 'Inline % = fuel share of that model')
+        : L_('条宽基准：最大车型＝满宽（合计行为满刻度）', 'Bar scale: largest model = full width (Total row = full scale)')) + '</span>'
+    + '</div>';
+  if (uncovered.length){
+    h += '<div class="mmf-note" style="color:#c0444e">'
+      + uncovered.length + ' ' + L_('个所选厂家暂无车型级数据（cube_md 只覆盖 ', ' selected maker(s) lack model-level data (cube_md covers ')
+      + Object.keys(COVERED).length + '/' + DICT.maker.length + L_(' 个厂家）', ' makers)') + '</div>';
+  }
+  h += '<div id="mmf-out"></div>';
+  root.innerHTML = h;
+
+  var tot = 0, nev = 0, nModel = 0;
+  list.forEach(function(m){ tot += m.total; nev += m.nev; nModel += m.models.length; });
+  document.getElementById('mmf-k-mk').textContent = list.length + ' ' + L_('家', '');
+  document.getElementById('mmf-k-mk-s').textContent = st.mkSel.length
+    ? L_('已选：', 'Selected: ') + st.mkSel.map(function(i){ return DICT.maker[i]; }).join(' · ')
+    : L_('未选厂家 → 默认展示区间 Top 6（已覆盖车型级数据）', 'No maker picked → default Top 6 with model-level data');
+  document.getElementById('mmf-k-tot').textContent = fmt(tot);
+  document.getElementById('mmf-k-tot-s').textContent = formatYm(ymB[0], ymB[1]) + L_(' 区间累计', ' cumulative');
+  document.getElementById('mmf-k-md').textContent = fmt(nModel);
+  document.getElementById('mmf-k-md-s').textContent = L_('按所选筛选条件统计的去重车型数', 'Distinct models under current filters');
+  document.getElementById('mmf-k-nev').textContent = fmtPct(pct(nev, tot));
+  document.getElementById('mmf-k-nev-s').textContent = 'NEV = BEV + HEV + PHEV，' + L_('合计 ', 'total ') + fmt(nev) + L_(' 辆', '');
+
+  var out = document.getElementById('mmf-out');
+  if (!list.length){
+    out.innerHTML = '<div class="mmf-empty">' + L_('当前筛选下没有数据。', 'No data under current filters.') + '</div>';
+  } else {
+    out.innerHTML = list.map(function(m){ return renderMaker(m, fuels); }).join('');
+    out.querySelectorAll('.mmf-cta[data-k]').forEach(function(sp){
+      sp.addEventListener('click', function(){ var k = sp.dataset.k; EXP[k] ? delete EXP[k] : EXP[k] = 1; render(); });
+    });
+    out.querySelectorAll('.mmf-cta[data-solo]').forEach(function(sp){
+      sp.addEventListener('click', function(){ soloMaker(sp.dataset.solo); });
+    });
+    // NEV 折线：按圆点实际位置连线（与下方柱列 x 对齐）
+    out.querySelectorAll('.mmf-tnev').forEach(function(strip){
+      var poly = strip.querySelector('polyline'); if (!poly) return;
+      var sr = strip.getBoundingClientRect(), pts = [];
+      strip.querySelectorAll('.mmf-tnev-row > div > i').forEach(function(d){
+        var r = d.getBoundingClientRect();
+        pts.push((r.left + r.width/2 - sr.left).toFixed(1) + ',' + (r.top + r.height/2 - sr.top).toFixed(1));
+      });
+      poly.setAttribute('points', pts.join(' '));
+    });
+    // 左右行对齐：列头 + 同序车型行 + 合计行，逐对取最大高度（两侧行序一致）
+    alignSplitRows(out);
+    /* 字体/换行在首帧之后才稳定，rAF 里再对一遍（幂等：只写显式高度与补偿量）*/
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(function(){ alignSplitRows(out); });
+  }
+
+  root.querySelectorAll('#mmf-view .chip').forEach(function(c){
+    c.addEventListener('click', function(){ VIEW = c.dataset.v; render(); });
+  });
+  root.querySelectorAll('.chip[data-s]').forEach(function(c){
+    c.addEventListener('click', function(){ SORT = c.dataset.s; render(); });
+  });
+  var csvBtn = document.getElementById('mmf-csv-btn');
+  if (csvBtn) csvBtn.addEventListener('click', exportCSV);
+}
+MM_.render = render;
+
+/* ---------- 挂接：renderAnalysis('mk') 之后追加渲染（tab 切换 / 筛选变更 / 语言切换都会经过这里） ---------- */
+if (typeof renderAnalysis === 'function' && !renderAnalysis.__mmfHook){
+  var _ra = renderAnalysis;
+  renderAnalysis = function(prefix){
+    var r = _ra.apply(this, arguments);
+    if (prefix === 'mk'){ try { render(); } catch(e){ console.error('mmf render:', e); } }
+    return r;
+  };
+  renderAnalysis.__mmfHook = true;
+}
+/* tab 点击不走 renderAnalysis（maker/md/fl 由 initAll 启动时批量渲染）→ 补激活监听 */
+(function(){
+  var mkTab = document.querySelector('.tab[data-tab="maker"]');
+  if (!mkTab) return;
+  mkTab.addEventListener('click', function(){
+    try { render(); } catch(e){ console.error('mmf render:', e); }
+  });
+  if (mkTab.classList.contains('active')){ try { render(); } catch(e){} }
+})();
+if (typeof window !== 'undefined') window.MM_ = MM_;
+})();
+/* MMF-V308-JS-END */
 </script>
 </body>
 </html>
