@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <script>/*__BUILD__-START*/
-window.__BUILD__={ver:"V350",ts:"2026-09-19T20:02:22",src:"patch_v350_fix_v349_comment.py",prev:"00532294c7205eb7b5dd953e14b85922",series:"2021-2026"};
+window.__BUILD__={ver:"V365",ts:"2026-09-29T20:07:11",src:"patch_v365.py",prev:"8eaeaa3383bda238b4b5b420ce6177d8",series:"2021-2026"};
 (function(){try{console.log("%c JPJ BUILD %c " + window.__BUILD__.ver + " ",
   "background:#12386b;color:#fff;border-radius:3px 0 0 3px;padding:2px 6px;font-weight:600",
   "background:#e8eef7;color:#12386b;border-radius:0 3px 3px 0;padding:2px 6px",
@@ -1989,7 +1989,7 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
     <div class="card"><h3><span data-i18n="dash.c5">销量走势</span><span class="sub" data-i18n="dash.c5s">含去年同期对比</span></h3><div class="chart-box tall"><canvas id="c-trend"></canvas></div></div>
     <div class="card"><h3 data-i18n="dash.c1">分 Maker 销量（Top 15）</h3><div class="chart-box tall"><canvas id="c-maker"></canvas></div></div>
   </div>
-  <div class="card"><h3><span data-i18n="dash.c1b">分 Maker 销量走势</span><span class="sub" data-i18n="dash.c1bs">最近12个月 · 前4名带数据标签</span></h3><div class="chart-box tall"><canvas id="c-maker-tr"></canvas></div></div>
+  <div class="card"><h3><span data-i18n="dash.share">市占率分析</span><span class="sub" data-i18n="dash.shares">对比期累计 · Top16 厂家 · 柱=销量 线=市占率 气泡=份额同比(pp)</span><span class="sub" id="share-axis-hint" style="margin-left:12px"></span><span style="margin-left:12px;display:inline-flex;gap:6px;vertical-align:middle"><button class="btn" id="share-dim-all" onclick="pickShareDim('all')" data-i18n="dash.shareAll">大盘</button><button class="btn" id="share-dim-suv" onclick="pickShareDim('suv')" data-i18n="dash.shareSuv">SUV</button><span style="display:inline-block;width:1px;height:14px;background:#d5d9de;margin:0 8px;vertical-align:-2px"></span><button class="btn" id="share-base-yoy" onclick="pickShareBase('yoy')" data-i18n="dash.baseYoy">对比去年同期</button><button class="btn" id="share-base-full" onclick="pickShareBase('full')" data-i18n="dash.baseFull">对比去年全年</button></span></h3><div style="height:400px;position:relative"><canvas id="share-chart"></canvas></div> <!--V361 图高 600→400px--></div><div class="card"><h3><span data-i18n="dash.c1b">分 Maker 销量走势</span><span class="sub" data-i18n="dash.c1bs">最近12个月 · 前4名带数据标签</span></h3><div class="chart-box tall"><canvas id="c-maker-tr"></canvas></div></div>
   <div class="grid2">
     <div class="card"><h3 data-i18n="dash.c2">分 Type 销量</h3><div class="chart-box tall"><canvas id="c-type"></canvas></div></div>
     <div class="card"><h3><span data-i18n="dash.c2b">分 Type 销量走势</span><span class="sub" data-i18n="dash.c2bs">最近12个月</span></h3><div class="chart-box tall"><canvas id="c-type-tr"></canvas></div></div>
@@ -2636,11 +2636,11 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
     <div class="card" style="display:flex;flex-direction:column">
       <h3><span data-i18n="mkt.cHHI">市场集中度 HHI（对比期）</span><span class="sub" data-i18n="mkt.cHHIs">CR3/CR5 与 HHI 指数；指数越高越集中</span></h3>
       <div id="mkt-hhi" class="hhi-box"></div>
-      <div class="chart-box" style="height:280px"><canvas id="c-mkt-hhi"></canvas></div>
+      <div class="chart-box" style="height:430px"><canvas id="c-mkt-hhi"></canvas></div>
     </div>
     <div class="card" style="display:flex;flex-direction:column">
-      <h3><span data-i18n="mkt.cNevMaker">分厂家 NEV 渗透率排名</span><span class="sub" data-i18n="mkt.cNevMakers">对比期各厂家电动化率（按销量 Top15）；下方为 NEV 同比贡献 Top5</span></h3>
-      <div class="chart-box" style="flex:1;min-height:260px"><canvas id="c-mkt-nevmaker"></canvas></div>
+      <h3><span data-i18n="mkt.cNevMaker">分厂家 NEV 渗透率排名</span><span class="sub" data-i18n="mkt.cNevMakers">对比期各厂家电动化率（按销量 Top16）；下方为 NEV 同比贡献 Top5</span></h3>
+      <div class="chart-box" style="flex:1;min-height:400px"><canvas id="c-mkt-nevmaker"></canvas></div>
       <div id="mkt-nev-contrib" class="nev-contrib"></div>
     </div>
   </div>
@@ -4063,7 +4063,9 @@ zh: {
   'btn.refresh':'⟳ 刷新', 'btn.export':'⬇ 导出 Excel', 'btn.clear':'清空', 'opt.all':'全部',
   'kpi.total':'累计销量（辆）', 'kpi.avg':'月均销量（辆）', 'kpi.makers':'在售厂家', 'kpi.models':'在售车型',
   'kpi.totalPrev':'去年同期累计销量（辆）', 'kpi.yoyDiff':'同比变化（辆）', 'kpi.yoyPct':'同比',
-  'dash.c1':'分 Maker 销量（Top 15）', 'dash.c2':'分 Type 销量',
+  'dash.c1':'分 Maker 销量（Top 16）', 'dash.c2':'分 Type 销量',
+  'dash.share':'市占率分析', 'dash.shares':'对比期累计 · Top16 厂家 · 柱=销量 线=市占率 气泡=份额同比(pp)',
+  'dash.shareAll':'大盘', 'dash.shareSuv':'SUV', 'dash.baseYoy':'对比去年同期', 'dash.baseFull':'对比去年全年', 'dash.shSales':'累计销量', 'dash.shShareP':'市占率', 'dash.shDpp':'份额同比',
   'dash.c1b':'分 Maker 销量走势', 'dash.c1bs':'对比期逐月 · 前4名带数据标签',
   'dash.c2b':'分 Type 销量走势', 'dash.c2bs':'对比期逐月',
   'dash.c3a':'分 Fuel 销量', 'dash.c3':'分 Fuel 销量走势',
@@ -4133,7 +4135,7 @@ zh: {
   'mkt.cHHI':'市场集中度 HHI（对比期）', 'mkt.cHHIs':'CR3/CR5 与 HHI 指数；指数越高越集中',
   'mkt.cDim':'维度切换对比', 'mkt.cDims':'顶部按钮切换 厂家 / 燃料 / 国别 / 类型',
   'mkt.cPriceBand':'价格带 × 销量矩阵', 'mkt.cPriceBands':'柱=销量 · 折线=NEV 渗透率（按车型中位价分档）',
-  'mkt.cNevMaker':'分厂家 NEV 渗透率排名', 'mkt.cNevMakers':'对比期各厂家电动化率（按销量 Top15）；下方为 NEV 同比贡献 Top5',
+  'mkt.cNevMaker':'分厂家 NEV 渗透率排名', 'mkt.cNevMakers':'对比期各厂家电动化率（按销量 Top16）；下方为 NEV 同比贡献 Top5',
   'mkt.dimMaker':'厂家',
   'mkt.hhiCompete':'竞争型（分散）', 'mkt.hhiMod':'中度集中', 'mkt.hhiOlig':'高度集中（寡占）',
   'mkt.hhiNote':'基于对比期 {n} 个在售厂家的销量份额计算',
@@ -4152,7 +4154,7 @@ zh: {
   'mkt.insModelNew':'最畅销车型易主：<b>{m}</b>（{mk}）{v} 辆，占当期销量 <b>{p}%</b>；基准期第一为 {prev}',
   'mkt.insBase':'对比期累计 <b>{t}</b> 辆，较基准期 {d}（{p}）',
   'mkt.insightProj':'按对比期月均（{m} 个月，共 {t} 辆）年化外推，全年约 <b>{a}</b> 辆（示意，未含季节性）',
-  'mkt.cHeat':'品牌 × 月份 销量热力图（对比期逐月）', 'mkt.cHeats':'行=全品牌合计 + Top12 品牌；列=对比期逐月；每行颜色自基准；含 Type 覆盖与 NEV 占比（基准期 vs 对比期）',
+  'mkt.cHeat':'品牌 × 月份 销量热力图（对比期逐月）', 'mkt.cHeats':'行=全品牌合计 + Top16 品牌；列=对比期逐月；每行颜色自基准；含 Type 覆盖与 NEV 占比（基准期 vs 对比期）',
   'mkt.cBox':'分 Maker 价格分布（箱线图，Top10）', 'mkt.cBoxs':'min/Q1/中位/Q3/max 基于车型中位价',
   'mkt.cPareto':'车型销量帕累托（80/20）', 'mkt.cParetos':'柱=销量，折线=累计占比',
   'mkt.cHist':'价格 / 车长分布（直方图）', 'mkt.hPrice':'按价格', 'mkt.hLen':'按车长', 'mkt.hCount':'按数量', 'mkt.hSales':'按销量',
@@ -4290,7 +4292,9 @@ en: {
   'btn.refresh':'⟳ Refresh', 'btn.export':'⬇ Export Excel', 'btn.clear':'Clear', 'opt.all':'All',
   'kpi.total':'Total Sales (units)', 'kpi.avg':'Avg Monthly Sales', 'kpi.makers':'Active Makers', 'kpi.models':'Active Models',
   'kpi.totalPrev':'Sales LY Same Period', 'kpi.yoyDiff':'YoY Change (units)', 'kpi.yoyPct':'YoY %',
-  'dash.c1':'Sales by Maker (Top 15)', 'dash.c2':'Sales by Type',
+  'dash.c1':'Sales by Maker (Top 16)', 'dash.c2':'Sales by Type',
+  'dash.share':'Market Share Analysis', 'dash.shares':'Compare-period totals · Top16 makers · bar=sales · line=share · bubble=share YoY (pp)',
+  'dash.shareAll':'All', 'dash.shareSuv':'SUV', 'dash.baseYoy':'vs same period LY', 'dash.baseFull':'vs full last year', 'dash.shSales':'Sales', 'dash.shShareP':'Share', 'dash.shDpp':'Share YoY',
   'dash.c1b':'Maker Sales Trend', 'dash.c1bs':'compare-period months · top 4 labeled',
   'dash.c2b':'Type Sales Trend', 'dash.c2bs':'compare-period months',
   'dash.c3a':'Sales by Fuel', 'dash.c3':'Fuel Sales Trend',
@@ -4360,7 +4364,7 @@ en: {
   'mkt.cHHI':'Market Concentration HHI (compare period)', 'mkt.cHHIs':'CR3/CR5 & HHI index; higher = more concentrated',
   'mkt.cDim':'Dimension Switch', 'mkt.cDims':'Top buttons switch Maker / Fuel / Country / Type',
   'mkt.cPriceBand':'Price Band x Sales', 'mkt.cPriceBands':'Bars = sales · Line = NEV penetration (by model median price)',
-  'mkt.cNevMaker':'NEV Penetration by Maker', 'mkt.cNevMakers':'Compare-period electrification per maker (Top15 by sales); below: NEV YoY contribution Top5',
+  'mkt.cNevMaker':'NEV Penetration by Maker', 'mkt.cNevMakers':'Compare-period electrification per maker (Top16 by sales); below: NEV YoY contribution Top5',
   'mkt.dimMaker':'Maker',
   'mkt.hhiCompete':'Competitive (fragmented)', 'mkt.hhiMod':'Moderately concentrated', 'mkt.hhiOlig':'Highly concentrated (oligopoly)',
   'mkt.hhiNote':'Computed from {n} active makers\' sales shares in compare period',
@@ -4379,7 +4383,7 @@ en: {
   'mkt.insModelNew':'Best-seller changed: <b>{m}</b> ({mk}) {v} units, <b>{p}%</b> of period volume; base-period leader was {prev}',
   'mkt.insBase':'Compare-period total <b>{t}</b> units, {d} ({p}) vs base period',
   'mkt.insightProj':'Annualized projection from compare-period monthly average ({m} months, {t} units total) &asymp; <b>{a}</b> units for the full year (illustrative, excludes seasonality)',
-  'mkt.cHeat':'Maker × Month Sales Heatmap (compare period, month by month)', 'mkt.cHeats':'row = all-brand total + Top12 makers; columns = compare-period months; per-row scaling; Type & NEV (base vs compare) columns',
+  'mkt.cHeat':'Maker × Month Sales Heatmap (compare period, month by month)', 'mkt.cHeats':'row = all-brand total + Top16 makers; columns = compare-period months; per-row scaling; Type & NEV (base vs compare) columns',
   'mkt.cBox':'Price Distribution by Maker (Box plot, Top10)', 'mkt.cBoxs':'min/Q1/median/Q3/max from model median price',
   'mkt.cPareto':'Model Sales Pareto (80/20)', 'mkt.cParetos':'bars=sales, line=cumulative share',
   'mkt.cHist':'Price / Length Distribution (Histogram)', 'mkt.hPrice':'By price', 'mkt.hLen':'By length', 'mkt.hCount':'By count', 'mkt.hSales':'By sales',
@@ -4720,6 +4724,13 @@ function buildDerived() {
     const al = MAKER_ALIAS[DATA.maker[i][1]];
     if (al) DATA.maker[i][1] = al;
   }
+  /*V354 ICAUR 车型合并（全局数据层，用户 2026-09-29 确认）：
+    iCAUR 03 iWD→iCaur 03、V23→iCaur V23；DATA.model 名称归一 → byCat 按名聚合自动合并*/
+  const MODEL_ALIAS = { 'iCAUR 03 iWD':'iCaur 03', 'V23':'iCaur V23' };
+  for (let i = 0; i < DATA.model.length; i++) {
+    const al = MODEL_ALIAS[DATA.model[i][1]];
+    if (al) DATA.model[i][1] = al;
+  }
   allYms = new Set();
   byCat = {};
   for (const cat of ['maker','type','fuel','model','colour']) {
@@ -4747,6 +4758,27 @@ function buildDerived() {
   MCTR = DATA.maker_country || [];      // maker_i -> country_i
   MODEL_PRICE = DATA.model_price || []; // model_i -> [min,max] or null
   MODEL_LENGTH = DATA.model_length || []; // model_i -> length in mm or null
+  /*V354 ICAUR 车型合并：CUBE_MD 索引重映射 + 同键行合并（幂等）*/
+  {
+    const dm = DICT.model, _tgt = {};
+    for (const [src, tgt] of Object.entries(MODEL_ALIAS)) {
+      const si = dm.indexOf(src), gi = dm.indexOf(tgt);
+      if (si >= 0 && gi >= 0 && si !== gi) _tgt[si] = gi;
+    }
+    for (const [src, al] of Object.entries(MODEL_ALIAS)) {
+      const si = dm.indexOf(src); if (si >= 0) dm[si] = al;
+    }
+    if (Object.keys(_tgt).length) {
+      for (const r of CUBE_MD) if (_tgt[r[1]] !== undefined) r[1] = _tgt[r[1]];
+      const _seen = new Map(), _out = [];
+      for (const r of CUBE_MD) {
+        const k = r[0] + '|' + r[1] + '|' + r[2] + '|' + r[3] + '|' + r[4];
+        const p = _seen.get(k);
+        if (p) p[5] += r[5]; else { _seen.set(k, r); _out.push(r); }
+      }
+      CUBE_MD.length = 0; for (const r of _out) CUBE_MD.push(r);
+    }
+  }
   MODEL_TYPE = new Array(DICT.model.length).fill(-1);
   for (const [, mdi, ti] of CUBE_MD) if (MODEL_TYPE[mdi] < 0) MODEL_TYPE[mdi] = ti;
   // V276: VAN 并入 MPV —— 全局口径统一（数据 + 顶部筛选 + 所有页面），幂等（VAN 移除后跳过）
@@ -6354,7 +6386,7 @@ function initSlicer(id, values, labelFn, onChange, order) {
 const slicerVal = id => { const v = parseInt(document.getElementById(id).value, 10); return isNaN(v) ? -1 : v; };
 
 // ---------- TAB 1: dashboard (cube-based, cross-filtering) ----------
-function renderDash(){
+function renderDashCore(){ /*V356 原 renderDash 改名，由下方同名包装器统一调用*/
   const [ymA,ymB] = readYmPair('dash');
   const B1=ymB[0], B2=ymB[1], A1=ymA[0], A2=ymA[1];
   // 对比期（本期）/基准期（前期）逐月序列
@@ -6650,7 +6682,7 @@ function renderDash(){
 
   // maker bar top15 (with value data labels)
   const mk = sortedAcc(mAcc);
-  const top15 = mk.slice(0,15);
+  const top15 = mk.slice(0,16); /*V352 Top16*/
   destroyChart('c-maker');
   const mkShareYoY={id:'mkShareYoY',afterDatasetsDraw(chart){
     const ctx=chart.ctx, meta=chart.getDatasetMeta(0);
@@ -6688,12 +6720,12 @@ function renderDash(){
   const rightPad = Math.min(170, Math.max(115, vDigits * 8 + 75));
   charts['c-maker'] = new Chart(document.getElementById('c-maker'), {
     type:'bar',
-    data:{labels:top15.map(d=>d[0]),datasets:[{data:top15.map(d=>d[1]),backgroundColor:COLORS[0]+'cc',borderRadius:4}]},
+    data:{labels:top15.map((d,i)=>(i+1)+'. '+d[0]),datasets:[{data:top15.map(d=>d[1]),backgroundColor:COLORS[0]+'cc',borderRadius:4}]} /*V352*/,
     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,layout:{padding:{right:rightPad}},
       plugins:{legend:{display:false},
         tooltip:{callbacks:{label:c=>fmt(c.parsed.x)+` ${T('unit')} (`+(c.parsed.x/total*100).toFixed(1)+'%)'}}},
-      scales:{x:{beginAtZero:true, suggestedMax: top15[0][1] * 1.04, ticks:{callback:v=>fmtK(v)}, grid:{color:'#EEF2F7'}},y:{grid:{display:false},ticks:{padding:6,font:{size:10.5}}}}},
-    plugins:[mkShareYoY]
+      scales:{x:{beginAtZero:true, suggestedMax: top15[0][1] * 1.04, ticks:{callback:v=>fmtK(v)}, grid:{color:'#EEF2F7'}},y:{grid:{display:false},ticks:{display:false,font:{size:10.5}},afterFit:(sc)=>{sc.width=leftTicksW(sc,10.5)+16;}}}}, /*V357 序号左对齐*/
+    plugins:[mkShareYoY,drawLeftTicks(10.5)]
   });
 
   // doughnuts with data labels (Type & Colour stay doughnuts; Fuel/Country/Price become % stacked area below)
@@ -8247,6 +8279,130 @@ function cascadeDashFilters(){
   const cySel = mslicerVals('dash-country');
   updateMakerSlicer('dash-maker', cySel, ()=>renderDash());
 }
+function renderDash(){ renderDashCore(); renderShareTable(); } /*V356 包装：所有调用点自动刷新市占率表*/
+/*V357 序号左对齐：隐藏 y 轴默认刻度，afterFit 测宽预留 + afterDraw 最左侧左对齐定点绘制*/
+function leftTickFont(px){ return px + 'px ' + ((typeof Chart !== 'undefined' && Chart.defaults.font && Chart.defaults.font.family) || 'sans-serif'); }
+function leftTicksW(sc, px){ const ctx = sc.chart.ctx; ctx.save(); ctx.font = leftTickFont(px); let w = 8; for (const t of sc.ticks) { const s = t.label == null ? '' : String(t.label); if (s) w = Math.max(w, ctx.measureText(s).width); } ctx.restore(); return w; }
+function drawLeftTicks(px){ return { id: 'drawLeftTicks' + px, afterDraw(chart) { const y = chart.scales.y; if (!y || !y.ticks || !y.ticks.length) return; const ctx = chart.ctx; ctx.save(); ctx.font = leftTickFont(px); ctx.fillStyle = (typeof Chart !== 'undefined' && Chart.defaults.color) || '#666'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; const x = chart.chartArea.left - y.width + 12; for (let i = 0; i < y.ticks.length; i++) { const s = y.ticks[i].label; if (s) ctx.fillText(String(s), x, y.getPixelForTick(i)); } ctx.restore(); } }; }
+let shareDim = 'all';
+let shareBase = 'yoy'; /*V364 同比基期：yoy=去年同期（基准期滑窗）| full=去年全年*/
+function pickShareBase(b){ shareBase = b; renderShareTable(); }
+function pickShareDim(d){ shareDim = d; renderShareTable(); }
+function renderShareTable(){
+  const el = document.getElementById('share-chart'); if (!el) return;
+  const [ymA, ymB] = readYmPair('dash');
+  const B1 = ymB[0], B2 = ymB[1], A1 = ymA[0], A2 = ymA[1];
+  const tSel = mslicerVals('dash-type'), fSel = mslicerVals('dash-fuel'),
+        cSel = mslicerVals('dash-colour'), cySel = mslicerVals('dash-country'),
+        mkSel = mslicerVals('dash-maker'), prSel = priceSlicerVals('dash-price');
+  const suvI = DICT.type.indexOf('SUV');
+  const wantSuv = shareDim === 'suv' && suvI >= 0;
+  const ok = (mi, ti, fi, ci) => inSel(mkSel, mi) && (!wantSuv || ti === suvI) && inSel(tSel, ti)
+    && inFuelSel(fSel, fi) && inSel(cSel, ci) && inCtrySel(cySel, mi);
+  const acc = (lo, hi) => {
+    const m = new Map(); let tot = 0;
+    const walk = (ym, mi, ti, fi, ci, n) => {
+      if (ym < lo || ym > hi || !ok(mi, ti, fi, ci)) return;
+      const nm = DICT.maker[mi] || '?';
+      m.set(nm, (m.get(nm) || 0) + n); tot += n;
+    };
+    if (prSel.length > 0) {
+      for (const r of CUBE_MD) {
+        const mi = MODEL_MAKER[r[1]]; if (mi === undefined) continue;
+        if (!priceMatches(r[1], prSel)) continue;
+        walk(r[0], mi, r[2], r[3], r[4], r[5]);
+      }
+    } else {
+      for (const r of CUBE) walk(r[0], r[1], r[2], r[3], r[4], r[5]);
+    }
+    return { m, tot };
+  };
+  const B = acc(B1, B2), /*V364 同比基期：去年同期=基准期滑窗 / 去年全年=对比期前一年 1–12 月*/
+        A = shareBase === 'full' ? acc(Math.floor(B1 / 100) * 100 - 99, Math.floor(B1 / 100) * 100 - 88) : acc(A1, A2);
+  const rows = [...B.m.entries()].map(([nm, v]) => {
+    const pl = A.m.get(nm) || 0;
+    const sh = B.tot > 0 ? v / B.tot * 100 : 0;
+    const shA = A.tot > 0 ? pl / A.tot * 100 : null;
+    return { nm, v, sh, d: shA == null ? null : sh - shA };
+  }).sort((a, b) => b.v - a.v).slice(0, 16);
+  const dTxt = (d) => d == null ? null : Math.abs(d) < 0.005 ? '±0.0pp' : (d >= 0 ? '+' : '') + d.toFixed(2) + 'pp';
+  const dCol = (d) => d == null ? '#8a929c' : d >= 0 ? '#16a34a' : '#c0444e';
+  const maxSh = Math.max(1, ...rows.map((r) => r.sh));
+  /*V357 气泡插件：折线点上方圆角气泡标注份额同比 pp（涨绿跌红；顶部放不下翻到点下方）*/
+  const ppBubble = { id: 'sharePpBubble', afterDatasetsDraw(chart) {
+    const meta = chart.getDatasetMeta(1); if (!meta || !meta.data) return;
+    const ctx = chart.ctx, area = chart.chartArea; ctx.save();
+    ctx.font = '600 11.5px system-ui,sans-serif'; /*V362 气泡标签 +2号*/ ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    meta.data.forEach((pt, i) => {
+      const d = rows[i] ? rows[i].d : null; if (d == null) return;
+      const txt = dTxt(d); if (!txt) return;
+      const col = dCol(d), w = ctx.measureText(txt).width + 12, h = 16;
+      let bx = pt.x - w / 2, by = pt.y - 13 - h;
+      if (by < area.top + 2) by = pt.y + 13;
+      if (bx < area.left + 2) bx = area.left + 2;
+      if (bx + w > area.right - 2) bx = area.right - 2 - w;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(bx, by, w, h, 8); else { const m = 8; ctx.moveTo(bx + m, by); ctx.arcTo(bx + w, by, bx + w, by + h, m); ctx.arcTo(bx + w, by + h, bx, by + h, m); ctx.arcTo(bx, by + h, bx, by, m); ctx.arcTo(bx, by, bx + w, by, m); ctx.closePath(); }
+      ctx.fillStyle = d >= 0 ? 'rgba(22,163,74,.13)' : 'rgba(192,68,78,.13)';
+      ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = col; ctx.fillText(txt, bx + w / 2, by + h / 2 + 0.5);
+    });
+    /*V362 厂家排名气泡：类目名下方，随大盘/SUV 切换同步（rows 降序 → 名次 = i+1）*/
+    const xs = chart.scales.x;
+    const labH = (xs._labelSizes && xs._labelSizes.heights && xs._labelSizes.heights[0]) || 12;
+    /*V365 国别配色（方案 A 商务经典）：马来西亚/中国/日本/美国 + 其他中性灰*/
+    const CCTY = { '马来西亚': '#1F3A5F', '中国': '#B03A3A', '日本': '#B5651D', '美国': '#1D7A4F' };
+    ctx.font = '700 10px system-ui,sans-serif'; ctx.textBaseline = 'middle';
+    rows.forEach((r, i) => {
+      const cx = xs.getPixelForTick(i); if (cx == null || isNaN(cx)) return;
+      const cy = area.bottom + labH + 38; /*V363 下移避开厂家名；V365 间隔加倍 24→38*/
+      ctx.beginPath(); ctx.arc(cx, cy, 8.5, 0, Math.PI * 2);
+      ctx.fillStyle = CCTY[dlCtryOf(r.nm)] || '#6B7280'; ctx.fill(); /*V365 国别配色（原统一 #1E3B39）*/
+      ctx.fillStyle = '#fff'; ctx.fillText(String(i + 1), cx, cy + 0.5);
+    });
+    ctx.restore();
+  } };
+  /*V359 轴定标：柱轴 0–2.1×最大值；折线轴 [sMin-2.1span, sMax+0.9span] → 折线带 52–75% 高度（远高于柱顶）*/
+  const maxV = rows[0] ? rows[0].v : 1;
+  const sMin = Math.min(...rows.map((r) => r.sh));
+  const sSpan = Math.max(maxSh - sMin, maxSh * 0.05, 0.5);
+  const y1lo = sMin - sSpan * 2.1, y1hi = maxSh + sSpan * 0.9;
+  const hintEl = document.getElementById('share-axis-hint');
+  const bp1 = shareBase === 'full' ? Math.floor(B1 / 100) * 100 - 99 : A1, bp2 = shareBase === 'full' ? Math.floor(B1 / 100) * 100 - 88 : A2;
+  const bpStr = `${Math.floor(bp1 / 100)}/${String(bp1 % 100).padStart(2, '0')}–${Math.floor(bp2 / 100)}/${String(bp2 % 100).padStart(2, '0')}`;
+  if (hintEl) hintEl.textContent = _BI(`折线 ${sMin.toFixed(1)}–${maxSh.toFixed(1)}%（非0起始·放大展示）· 同比基期 ${bpStr}`, `Line ${sMin.toFixed(1)}–${maxSh.toFixed(1)}% (zoomed, non-zero) · base ${bpStr}`); /*V360 数据带注记；V364 追加基期区间*/
+  destroyChart('share-chart'); /*V357 表格图形化：柱=销量 线=市占率 气泡=份额同比*/
+  charts['share-chart'] = new Chart(el, {
+    data: { labels: rows.map((r) => r.nm), datasets: [
+      { type: 'bar', label: T('dash.shSales'), data: rows.map((r) => r.v), backgroundColor: COLORS[0] + 'cc', borderRadius: 4, yAxisID: 'y', order: 2, datalabels: { display: true, anchor: 'end', align: 'end', offset: -2, color: '#6b7280', font: { weight: '600', size: 11.5 }, formatter: (v) => fmt(v) } /*V362 柱值标签 +2号*/ },
+      { type: 'line', label: T('dash.shShareP'), data: rows.map((r) => +r.sh.toFixed(2)), borderColor: '#B5651D', backgroundColor: '#B5651D', borderWidth: 2, pointRadius: 3, pointHoverRadius: 4, pointBackgroundColor: '#B5651D', pointBorderColor: '#fff', pointBorderWidth: 1, tension: 0, yAxisID: 'y1', order: 1, /*V361 市占率标签：折线点下方*/ datalabels: { display: true, align: 'bottom', offset: 7, color: '#B5651D', font: { weight: '600', size: 11.5 }, formatter: (v) => v.toFixed(1) + '%' } /*V362 折线标签 +2号*/ }
+    ] },
+    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { bottom: 50 } }, /*V362 底部预留排名气泡；V363 26→36；V365 36→50*/
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: (c) => c.datasetIndex === 0 ? ` ${c.dataset.label}: ${fmt(c.parsed.y)} ${T('unit')}` : ` ${c.dataset.label}: ${c.parsed.y.toFixed(2)}%` } } },
+      scales: {
+        x: { ticks: { font: { size: 11 }, autoSkip: false, maxRotation: 45, minRotation: 0 }, grid: { display: false } } /*V365 厂家名 10→11*/,
+        y: { display: false, beginAtZero: true, max: maxV * 2.1 }, /*V359 双轴默认隐藏；柱轴压缩至 ~48% 高*/
+        y1: { display: false, min: y1lo, max: y1hi } /*V359 折线轴非 0 起始：折线带抬升至 ~52–75% 高度，远离柱形*/
+      }
+    },
+    plugins: [ppBubble]
+  });
+  const bA = document.getElementById('share-dim-all'), bS = document.getElementById('share-dim-suv');
+  if (bA && bS) {
+    const on = 'background:#1F3A5F;color:#fff', off = 'background:transparent;color:inherit';
+    bA.style.cssText = shareDim === 'all' ? on : off;
+    bS.style.cssText = shareDim === 'suv' ? on : off;
+  }
+  /*V364 基期按钮高亮*/
+  const bY = document.getElementById('share-base-yoy'), bF = document.getElementById('share-base-full');
+  if (bY && bF) {
+    const on = 'background:#1F3A5F;color:#fff', off = 'background:transparent;color:inherit';
+    bY.style.cssText = shareBase === 'yoy' ? on : off;
+    bF.style.cssText = shareBase === 'full' ? on : off;
+  }
+}
 
 // ---------- Excel export for analysis tabs ----------
 function exportAnalysis(prefix){
@@ -9781,9 +9937,10 @@ function renderMaa(){
       }
     }
   }
+  // V351: 提示行里 JPJ 车型数也走 fmt()（原本裸拼 → 缺千分位）  /*V351*/
   // EN 的 'maa.period' 原本自带冒号、模板又拼了一个 → 去掉值里的冒号  /*V350*/
   document.getElementById('maa-hint').textContent =
-    `${T('maa.period')}: ${maaMonthName(MAA.months[mo])} · ${per==='m'?T('maa.m'):T('maa.y')} · ${maaSrcTxt()} · ${fmt(MAA.meta.rows)} ${T('maa.rows')} · JPJ ${T('maa.thModel')} ${MAA.meta.jpj_matched ?? '-'} ${T('maa.rows')} · ${T('ft.gen')} ${MAA.meta.generated}`;
+    `${T('maa.period')}: ${maaMonthName(MAA.months[mo])} · ${per==='m'?T('maa.m'):T('maa.y')} · ${maaSrcTxt()} · ${fmt(MAA.meta.rows)} ${T('maa.rows')} · JPJ ${T('maa.thModel')} ${fmt(MAA.meta.jpj_matched)} ${T('maa.rows')} · ${T('ft.gen')} ${MAA.meta.generated}`;
   document.getElementById('maa-kpi-total').textContent = fmt(total);
   const maaTrimCnt = [...byTrim.keys()].filter(i=>D.trim[i]).length;
   document.getElementById('maa-kpi-makers').textContent = fmt(maaTrimCnt);
@@ -10751,7 +10908,7 @@ function renderMktHeat(P, ymA1, ymA2, ymB1, ymB2){
   // V88：列 = 对比期逐月（跟随 ymB 拖拽）
   const hYms=YM_SORTED.filter(ym=>ym>=ymB1 && ym<=ymB2);
   const ymIdx=new Map(hYms.map((ym,i)=>[ym,i]));
-  const topMakers=[...P.makerSales.entries()].sort((a,b)=>b[1]-a[1]).slice(0,12).map(([mi])=>mi);
+  const topMakers=[...P.makerSales.entries()].sort((a,b)=>b[1]-a[1]).slice(0,16).map(([mi])=>mi); /*V352*/
   const mkMonths=new Map(); topMakers.forEach(mi=>mkMonths.set(mi,new Array(hYms.length).fill(0)));
   const allTot=new Array(hYms.length).fill(0);
   const allTypes=new Set();
@@ -11495,16 +11652,16 @@ function renderMktHHI(PB){
       <div class="hhi-tag ${cls}">${lvl}</div>
     </div>
     <div class="hhi-note">${T('mkt.hhiNote').replace('{n}',makers.length)}</div>`;
-  // HHI 厂家集中度柱状图 (Top10)
-  const top10=makers.slice(0,10);
-  const maxShare=Math.max(...top10.map(([,v])=>v/tot*100));
+  // HHI 厂家集中度柱状图 (Top16, V352)
+  const top16=makers.slice(0,16);
+  const maxShare=Math.max(...top16.map(([,v])=>v/tot*100));
   const xMax=Math.ceil(maxShare*1.1);
   const canvas=document.getElementById('c-mkt-hhi'); if(!canvas) return;
   destroyChart('c-mkt-hhi');
   charts['c-mkt-hhi']=new Chart(canvas,{
     type:'bar',indexAxis:'y',
-    data:{labels:top10.map(([mi])=>DICT.maker[mi]),datasets:[
-      {label:T('mkt.kShare'),data:top10.map(([,v])=>+(v/tot*100).toFixed(2)),backgroundColor:top10.map((_,i)=>COLORS[i%COLORS.length]+'cc'),borderRadius:4}
+    data:{labels:top16.map(([mi])=>DICT.maker[mi]),datasets:[
+      {label:T('mkt.kShare'),data:top16.map(([,v])=>+(v/tot*100).toFixed(2)),backgroundColor:top16.map((_,i)=>COLORS[i%COLORS.length]+'cc'),borderRadius:4}
     ]},
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',layout:{padding:{right:16,top:8}},
       plugins:{legend:{display:false},
@@ -11613,19 +11770,19 @@ function renderMktNevMaker(ymB1,ymB2,ymA1,ymA2){
     if(ym>=ymA1&&ym<=ymA2 && NEV_FUELS.has(fi)) nevBase.set(mi,(nevBase.get(mi)||0)+n);
   }
   const rows=[...totM.entries()].map(([mi,t])=>({mi,name:DICT.maker[mi],tot:t,nevPct:t>0?(nevCmp.get(mi)||0)/t*100:0,contrib:(nevCmp.get(mi)||0)-(nevBase.get(mi)||0)}))
-    .filter(r=>r.tot>0).sort((a,b)=>b.tot-a.tot).slice(0,15);
+    .filter(r=>r.tot>0).sort((a,b)=>b.tot-a.tot).slice(0,16); /*V352*/
   destroyChart('c-mkt-nevmaker');
   charts['c-mkt-nevmaker']=new Chart(el,{
     type:'bar',indexAxis:'y',
-    data:{labels:rows.map(r=>r.name),datasets:[
+    data:{labels:rows.map((r,i)=>(i+1)+'. '+r.name),datasets:[ /*V352*/
       {label:T('mkt.kNev'),data:rows.map(r=>+r.nevPct.toFixed(2)),backgroundColor:rows.map(r=> r.nevPct>=50?COLORS[2]+'cc':r.nevPct>=30?COLORS[2]+'88':COLORS[2]+'55'),borderRadius:4}
     ]},
     options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',layout:{padding:{right:48,top:14}},
       plugins:{legend:{display:false},
         tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.x}%`}},
         datalabels:{display:true,anchor:'end',align:'right',clip:false,color:'#6b7280',font:{weight:'600',size:10},offset:4,formatter:v=>v.toFixed(1)+'%'}},
-      scales:{x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'},title:{display:true,text:T('mkt.kNev'),font:{size:11}}},y:{grid:{display:false},ticks:{font:{size:10}}}}
-    }
+      scales:{x:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'},title:{display:true,text:T('mkt.kNev'),font:{size:11}}},y:{grid:{display:false},ticks:{display:false,font:{size:10}},afterFit:(sc)=>{sc.width=leftTicksW(sc,10)+14;}}}}, /*V357 序号左对齐*/
+      plugins:[drawLeftTicks(10)]
   });
   const box=document.getElementById('mkt-nev-contrib');
   if(box){

@@ -19,16 +19,26 @@
 4. 之后每次 `git push` 到 `main` 分支会自动重新部署。
 
 ## 本地更新流程（工具改版时）
-1. 在 `template.html` 修改工具 → 运行对应 `build_v*.py` 生成新版本文件。
-2. 更新工具页 `tool.html`（保持首页不变）：
+
+> ⚠️ 本仓库常由**两个会话并行修改**。写产物必须走 `jpj_guard.py`，
+> 详见 **[AGENTS.md](AGENTS.md)**（硬规则）与 **[JPJ_PATCH_GUIDE.md](JPJ_PATCH_GUIDE.md)**（补丁写法）。
+> 历史上用手工 `cp` 覆盖 `tool.html` 造成过「改动静默消失」和「版本号混淆」两次事故。
+
+1. **看当前状态**：
    ```bash
-   cp "马来西亚乘用车销量分析工具_2021-2026V275.html" tool.html
+   python jpj_guard.py status      # 当前是哪一版 / 三文件是否一致 / 快照情况
+   python jpj_guard.py lint        # 有没有脚本还在裸写产物
    ```
-   （仅在工具内容变化时执行；SEO 首页 `index.html` 通常无需改动）
-3. 提交并推送：
+2. **改工具**：写一个补丁脚本（照抄 JPJ_PATCH_GUIDE.md 的 15 行骨架），
+   或直接运行已经是 guard -aware 的构建器（如 `build_v308_mmf.py`）。二者都会：
+   加写锁 → 盖 `window.__BUILD__` 版本戳 → 母版 + 两个产物原子同步 →
+   写后 md5 全等断言 → 自动落 `html/V{ver}.html` 快照 → 登记 `.build_manifest.json`。
+3. **提交并推送**（`template.html`、`…V*.html` 在 `.gitignore` 内，只提交 `tool.html`）：
    ```bash
    git add tool.html && git commit -m "update tool" && git push
    ```
+   （仅工具内容变化时执行；SEO 首页 `index.html` 通常无需改动。push 前需用户确认）
+4. 打开产物看控制台首行 `JPJ BUILD V3xx` 确认版本已更新。
 
 ## SEO 上线后建议
 1. Google Search Console（`search.google.com/search-console`）添加资源 `playsfunny.com`，DNS 验证。
