@@ -30,19 +30,26 @@ jobs:
       # 译文映射缓存：断点续传 + 复用已译条目（省 DeepL 额度）。
       # 每次运行都保存新缓存，并优先恢复最近一次 → 增量翻译。
       #
-      # ⚠️ 命名空间 v1（en-map-*）已废弃：里面混着 2026-09 之前机器翻译留下的旧条目，
-      # 而缓存优先级高于「回采现有 EN 产物」（make_en_v2.py:509），会把线上人工润色过的
-      # 译法重新冲成机翻（实测：CX-5 的 "gen-3" → "third-generation"、WR-V 徽标
-      # "Range-wide price cut" → "across the rangeprice cut"）。换到 v2 命名空间后：
-      # 首跑必然空缓存 → 走回采 → 结构一致时产物与线上逐字节相同（实测 1,171/1,171 条命中、
-      # 0 待译），随即写入新缓存供后续增量复用。切勿改回 en-map-。
+      # ⚠️ 缓存命名空间版本 = 译文权威性版本，改一次等于强制一次「干净回采」。
+      #
+      # 为什么必须换 v3：缓存优先级高于「回采现有 EN 产物」（make_en_v2.py:509），
+      # 所以 cache 里任何一条过期机翻都会被永久固化——即使人工把 EN 产物改对了，
+      # 下一次 CI 也会用旧 cache 覆盖回去。历史上已被这条规则坑过两次：
+      #   v1：CX-5 "gen-3" → "third-generation"、WR-V 徽标 "Range-wide price cut"
+      #       → "across the rangeprice cut"
+      #   v2：v2 缓存由含上述机翻的产物播种，同样无法自愈
+      # 换到新命名空间后首跑必然空缓存 → 只走回采 → 结构一致时产物与线上逐字节相同
+      # （实测 1,171/1,171 条命中、0 待译、exit 0），随即写入新缓存供后续增量复用。
+      #
+      # 因此：**修正 EN 产物后一定要同步 bump 这里**，否则修复会被旧缓存吃掉。
+      # 切勿改回 en-map- / en-map-v2-。
       - name: Restore translation cache
         uses: actions/cache@v4
         with:
           path: .cache/en_map_v2.json
-          key: en-map-v2-${{ github.run_id }}
+          key: en-map-v3-${{ github.run_id }}
           restore-keys: |
-            en-map-v2-
+            en-map-v3-
 
       # 在线翻译 API 闸门：默认关闭（未配置 repo variable 时即 off）。
       # 有余下未译条目时脚本会直接失败（不写产物），CI 红灯等你处理。
