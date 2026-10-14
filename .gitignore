@@ -18,6 +18,12 @@
 !/launches.html
 !/launches_en.html
 
+# 新车速递卡片图（自托管）：原先直接外链 paultan.org / soyacincau.com，
+# 但部分网络下第三方图床不可达 → 卡片变白块。改为下载压缩后放 img/，
+# 页面改用相对路径 img/*.jpg（同域加载，file:// 本地预览也能显示）。
+!/img/
+!/img/*.jpg
+
 # 英文版生成脚本（ZH→EN 管线；密钥不在此文件内，运行时从 .translate_key 读取）
 !/make_en_v2.py
 
