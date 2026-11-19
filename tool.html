@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <script>/*__BUILD__-START*/
-window.__BUILD__={ver:"V383",ts:"2026-11-12T06:53:00",src:"update_v383.py",prev:"b6247e2b8992b925092a450d84bc3d63",series:"2021-2026"};
+window.__BUILD__={ver:"V388",ts:"2026-11-18T22:44:59",src:"update_v388.py",prev:"0ed8de3b8b797de801975a44a339dc3c",series:"2021-2026"};
 (function(){try{console.log("%c JPJ BUILD %c " + window.__BUILD__.ver + " ",
   "background:#12386b;color:#fff;border-radius:3px 0 0 3px;padding:2px 6px;font-weight:600",
   "background:#e8eef7;color:#12386b;border-radius:0 3px 3px 0;padding:2px 6px",
@@ -1108,6 +1108,15 @@ footer{text-align:center;font-size:12px;color:var(--sub);padding:16px}
 td.sticky,th.sticky{position:sticky;left:0;background:#fff;z-index:2;box-shadow:1px 0 0 var(--line);font-weight:500}
 thead th.sticky{z-index:3}
 .inline-sel{padding:5px 10px;border:1px solid #D8D2BF;border-radius:7px;font-size:11.5px;background:#fff}
+/*V384 按动力拆分开关 + 价格星标*/
+/*V387 按动力拆分：方案 D（放大复选框 + 整块描边，点击区约 124x32）*/
+.split-chk{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;transition:border-color .12s ease,background .12s ease}
+.split-chk:hover{border-color:#94A3B8}
+.split-chk input{width:17px;height:17px;margin:0;flex:0 0 17px;cursor:pointer;accent-color:var(--brand)}
+.split-chk span{font-size:11.5px;color:#64748B;letter-spacing:.02em;user-select:none;white-space:nowrap}
+.split-chk.on,.split-chk:has(input:checked){border-color:var(--brand);background:#F0F7F6}
+.split-chk.on span,.split-chk:has(input:checked) span{color:var(--brand);font-weight:500}
+.mfp-star{color:#B03A3A;font-weight:700;margin-left:1px;cursor:help}
 .msel{position:relative;display:inline-block}
 .msel-btn{padding:5px 11px;border:1px solid var(--line);border-radius:4px;font-size:11.5px;background:#fff;cursor:pointer;color:#1F3A37;min-width:78px;text-align:left;transition:border-color .12s ease, box-shadow .12s ease}
 .msel-btn:hover{border-color:#94A3B8;box-shadow:0 1px 4px rgba(15,23,42,.08)}
@@ -2101,7 +2110,6 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
       <span><label data-i18n="f.type">Type</label><span id="mk-type" class="msel"></span></span>
       <span><label data-i18n="f.price">价格</label><span id="mk-price" class="msel"></span></span>
       <span><label data-i18n="f.colour">Colour</label><span id="mk-colour" class="msel"></span></span>
-      <span class="hint" id="mk-hint"></span>
       <button class="btn-export" onclick="exportAnalysis('mk')" data-i18n="btn.export">⬇ 导出 Excel</button>
     </div>
   </div>
@@ -2163,8 +2171,8 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
       <span><label data-i18n="f.show">显示</label><select id="md-topn" class="inline-sel">
         <option value="5">Top 5</option><option value="10">Top 10</option><option value="20">Top 20</option><option value="50" selected>Top 50</option><option value="100">Top 100</option><option value="200">Top 200</option><option value="99999" data-i18n="opt.all">全部</option>
       </select></span>
-      <span class="hint" id="md-hint"></span>
       <button class="btn-export" onclick="exportAnalysis('md')" data-i18n="btn.export">⬇ 导出 Excel</button>
+      <label class="split-chk" title="" data-i18n-attr="title:md.splitTip"><input type="checkbox" id="md-split"><span data-i18n="md.split">按动力拆分</span></label>
     </div>
   </div>
   <div class="card">
@@ -2219,7 +2227,6 @@ tr.tsect td{background:#f3f4f6;font-weight:600;color:var(--sub);font-size:12px;b
       <span><label data-i18n="f.type">Type</label><span id="fl-type" class="msel"></span></span>
       <span><label data-i18n="f.price">价格</label><span id="fl-price" class="msel"></span></span>
       <span><label data-i18n="f.colour">Colour</label><span id="fl-colour" class="msel"></span></span>
-      <span class="hint" id="fl-hint"></span>
       <button class="btn-export" onclick="exportAnalysis('fl')" data-i18n="btn.export">⬇ 导出 Excel</button>
     </div>
   </div>
@@ -4123,6 +4130,7 @@ zh: {
   'mk.c3':'厂家销量与市场份额', 'mk.c3s':'柱状=本期销量 · 折线=本期市场份额（Top 15）',
   'md.c1':'车型销量排名', 'md.c2':'车型月度销量走势', 'md.c2s':'勾选车型对比',
   'md.c3':'车型销量与市场份额', 'md.c3s':'柱状=本期销量 · 折线=本期市场份额（Top 15）',
+  'md.split':'按动力拆分', 'md.splitTip':'同车型不同动力拆成独立行（同车型相邻 · 组内按动力销量降序）', 'md.splitNote':' · 按动力拆分（同车型相邻，序号 1a/1b 为同一车型）', 'md.mfpStar':'该动力档无独立 MSRP，取车系区间',
   'fl.c1':'Fuel 销量排名', 'fl.c2':'Fuel 月度销量走势', 'fl.c2s':'最近12个月 · 百分比面积堆叠 · 勾选 Fuel 类型对比',
   'fl.c3':'Type × Fuel 交叉分析', 'fl.c3s':'本期销量（辆）· 下部为行内占比 · 不应用 Type 筛选，其余筛选生效',
   'fl.c4':'Fuel 销量与市场份额', 'fl.c4s':'柱状=本期销量 · 折线=本期市场份额',
@@ -4352,6 +4360,7 @@ en: {
   'mk.c3':'Maker Sales & Market Share', 'mk.c3s':'bars = period sales · line = period market share (Top 15)',
   'md.c1':'Model Sales Ranking', 'md.c2':'Model Monthly Trend', 'md.c2s':'check models to compare',
   'md.c3':'Model Sales & Market Share', 'md.c3s':'bars = period sales · line = period market share (Top 15)',
+  'md.split':'Split by fuel', 'md.splitTip':'one row per fuel within a model (same model kept adjacent · fuel rows sorted by sales)', 'md.splitNote':' · split by fuel (same model adjacent; 1a/1b = one model)', 'md.mfpStar':'No separate MSRP for this fuel; model price range shown',
   'fl.c1':'Fuel Sales Ranking', 'fl.c2':'Fuel Monthly Trend', 'fl.c2s':'last 12 months · 100% stacked area · check fuel types to compare',
   'fl.c3':'Type × Fuel Cross Analysis', 'fl.c3s':'period sales (units) · lower section = row-wise % · Type filter not applied, others active',
   'fl.c4':'Fuel Sales & Market Share', 'fl.c4s':'bars = period sales · line = period market share',
@@ -4563,6 +4572,33 @@ const T = k => (I18N[LANG] && I18N[LANG][k]) ?? I18N.zh[k] ?? k;
 const PRICE_RANGES = [[0,49999],[50000,79999],[80000,99999],[100000,149999],[150000,199999],[200000,249999],[250000,300000],[300001,Infinity]];
 const PRICE_LABELS = ['<50k','50-79k','80-99k','100-149k','150-199k','200-249k','250-300k','>300k'];
 const priceStr = p => p ? (p[0]===p[1] ? `RM${(p[0]/1000).toFixed(0)}k` : `RM${(p[0]/1000).toFixed(0)}-${(p[1]/1000).toFixed(0)}k`) : '～';
+/*V384 车型 × 动力档 MSRP（paultan 变体级价格按动力聚合；键 = 厂家|车型|动力档，来源 mfprice.json）*/
+const MFP = {"Audi|Q7|HEV Hybrid":[462272,462272],"BMW|3 Series|ICE Petrol":[267800,323800],"BMW|5 Series|HEV Hybrid":[340800,407800],"BMW|7 Series|PHEV Plug-in":[685800,685800],"BMW|X1|ICE Petrol":[252800,252800],"BMW|X3|HEV Hybrid":[325800,358800],"BMW|X4|ICE Petrol":[406800,406800],"BMW|X5|HEV Hybrid":[470800,470800],"BMW|X5|PHEV Plug-in":[494800,494800],"BMW|X6|HEV Hybrid":[735800,735800],"BMW|X7|HEV Hybrid":[635800,699800],"BMW|Z4|ICE Petrol":[501800,501800],"BMW|i4|BEV Electric":[294800,294800],"BMW|i5|BEV Electric":[368800,479800],"BMW|i7|BEV Electric":[714800,714800],"BMW|iX1|BEV Electric":[250800,250800],"BMW|iX2|BEV Electric":[283800,283800],"BMW|iX3|BEV Electric":[378800,378800],"BMW|iX|BEV Electric":[250800,487800],"BYD|Atto 2|BEV Electric":[100000,100000],"BYD|Atto 3|BEV Electric":[125800,138800],"BYD|Dolphin|BEV Electric":[100530,125530],"BYD|M6|BEV Electric":[109800,123800],"BYD|Seal 6|BEV Electric":[100000,115800],"BYD|Sealion|BEV Electric":[163800,203800],"BYD|Seal|BEV Electric":[100000,191800],"CHERY|Omoda 5|ICE Petrol":[116800,116800],"CHERY|TIGGO 7|ICE Petrol":[123800,123800],"CHERY|TIGGO 7|PHEV Plug-in":[129400,129400],"CHERY|TIGGO 8|ICE Petrol":[129800,159800],"CHERY|TIGGO 8|PHEV Plug-in":[159800,159800],"CHERY|TIGGO 9|ICE Petrol":[166800,166800],"CHERY|TIGGO CROSS|HEV Hybrid":[99800,99800],"CHERY|TIGGO CROSS|ICE Petrol":[88800,88800],"Denza|D9|BEV Electric":[299000,355000],"Ford|Everest|Diesel":[281888,430888],"Ford|Mustang|ICE Petrol":[461271,565626],"Ford|Ranger|Diesel":[115888,205888],"GAC|Emkoo|ICE Petrol":[123800,133800],"GAC|GS3|ICE Petrol":[103800,126800],"Great Wall|Haval H6|HEV Hybrid":[139800,139800],"Great Wall|Ora|BEV Electric":[169800,189900],"Great Wall|Ora|HEV Hybrid":[115000,115000],"Great Wall|Tank 300|HEV Hybrid":[259800,259800],"Great Wall|Tank 300|ICE Petrol":[250000,250000],"Great Wall|Tank 500|HEV Hybrid":[328800,328800],"Great Wall|Wey G9|HEV Hybrid":[249800,249800],"Great Wall|Wey G9|PHEV Plug-in":[269800,269800],"Honda|Accord|ICE Petrol":[187400,197400],"Honda|BR-V|ICE Petrol":[86726,93420],"Honda|CR-V|HEV Hybrid":[178200,195900],"Honda|CR-V|ICE Petrol":[181900,181900],"Honda|City|HEV Hybrid":[111900,112900],"Honda|City|ICE Petrol":[89900,100900],"Honda|Civic|HEV Hybrid":[167900,167900],"Honda|Civic|ICE Petrol":[133900,149900],"Honda|HR-V|HEV Hybrid":[143900,143900],"Honda|HR-V|ICE Petrol":[115900,137900],"Honda|Jazz|ICE Petrol":[75300,76316],"Honda|WR-V|ICE Petrol":[94900,104900],"Honda|e:N1|BEV Electric":[149900,149900],"Hyundai|Ioniq 5|BEV Electric":[207808,238408],"Hyundai|Ioniq 6|BEV Electric":[219888,319888],"Hyundai|Kona|BEV Electric":[156538,176838],"Hyundai|Kona|ICE Petrol":[119888,136888],"Hyundai|Santa Fe|HEV Hybrid":[225000,245000],"Hyundai|Santa Fe|ICE Petrol":[270000,270000],"Hyundai|Sonata|ICE Petrol":[189888,189888],"Hyundai|Staria|Diesel":[179888,267888],"Hyundai|Tucson|HEV Hybrid":[189800,189800],"Hyundai|Tucson|ICE Petrol":[159800,179800],"Isuzu|D-Max|Diesel":[103121,162938],"Jetour|Dashing|ICE Petrol":[106800,116800],"Jetour|T1|ICE Petrol":[129800,146800],"Jetour|T2|ICE Petrol":[156800,156800],"Jetour|T2|PHEV Plug-in":[162800,162800],"Jetour|VT9|ICE Petrol":[119350,124350],"Kia|Carnival|Diesel":[188888,248888],"Kia|Sorento|Diesel":[255229,255229],"Kia|Sorento|ICE Petrol":[211498,235498],"Kia|Sportage|ICE Petrol":[128800,178800],"Land Rover|Defender|Diesel":[187547,187547],"Land Rover|Range Rover Evoque|ICE Petrol":[498800,565800],"Land Rover|Range Rover Sport|ICE Petrol":[1698000,1698000],"Land Rover|Range Rover Velar|ICE Petrol":[638800,638800],"Land Rover|Range Rover|ICE Petrol":[498800,2488000],"Leapmotor|B10|BEV Electric":[118800,118800],"Leapmotor|C10|BEV Electric":[129000,139000],"Lexus|ES|HEV Hybrid":[366888,366888],"Lexus|ES|ICE Petrol":[320888,371888],"Lexus|IS|HEV Hybrid":[535000,535000],"Lexus|IS|ICE Petrol":[409000,499000],"Lexus|LBX|HEV Hybrid":[238888,268888],"Lexus|LM|HEV Hybrid":[1228000,1468000],"Lexus|LX|HEV Hybrid":[1540000,1715000],"Lexus|NX|HEV Hybrid":[395888,395888],"Lexus|NX|ICE Petrol":[415888,415888],"Lexus|RX|HEV Hybrid":[498888,512888],"Lexus|RX|ICE Petrol":[468888,468888],"Lexus|UX|ICE Petrol":[250688,299888],"Lotus|Eletre|BEV Electric":[499000,839000],"MG|MG HS|ICE Petrol":[129900,145900],"MG|MG4|BEV Electric":[100888,138888],"MG|MG5|ICE Petrol":[93800,93800],"MG|S5|BEV Electric":[104468,117528],"Mazda|BT-50|Diesel":[140418,140418],"Mazda|CX-30|ICE Petrol":[122409,154409],"Mazda|CX-3|ICE Petrol":[107920,154409],"Mazda|CX-5|Diesel":[170323,170323],"Mazda|CX-5|ICE Petrol":[134469,178760],"Mazda|CX-60|HEV Hybrid":[252872,252872],"Mazda|CX-60|ICE Petrol":[200510,200510],"Mazda|CX-8|Diesel":[213123,213123],"Mazda|CX-8|ICE Petrol":[165360,221360],"Mazda|CX-8|PHEV Plug-in":[296610,296610],"Mazda|MX-5|ICE Petrol":[294154,296154],"Mazda|Mazda2|ICE Petrol":[103670,109170],"Mazda|Mazda3|ICE Petrol":[119620,119620],"Mazda|Mazda6|ICE Petrol":[156191,159158],"Mercedes Benz|A-Class|HEV Hybrid":[263888,263888],"Mercedes Benz|A-Class|ICE Petrol":[219263,263888],"Mercedes Benz|C-Class|HEV Hybrid":[292888,292888],"Mercedes Benz|C-Class|ICE Petrol":[336129,403184],"Mercedes Benz|C-Class|PHEV Plug-in":[338888,338888],"Mercedes Benz|CLA|BEV Electric":[274888,274888],"Mercedes Benz|E-Class|HEV Hybrid":[367888,367888],"Mercedes Benz|E-Class|ICE Petrol":[533888,533888],"Mercedes Benz|E-Class|PHEV Plug-in":[418888,418888],"Mercedes Benz|EQA|BEV Electric":[296888,296888],"Mercedes Benz|EQE|BEV Electric":[379888,485888],"Mercedes Benz|EQS|BEV Electric":[625888,699888],"Mercedes Benz|G-Class|BEV Electric":[958888,998888],"Mercedes Benz|GLA|ICE Petrol":[258888,295888],"Mercedes Benz|GLB|ICE Petrol":[290888,341888],"Mercedes Benz|GLC|BEV Electric":[389000,399000],"Mercedes Benz|GLC|HEV Hybrid":[329888,329888],"Mercedes Benz|GLC|PHEV Plug-in":[398888,425888],"Mercedes Benz|GLE|HEV Hybrid":[528888,868888],"Mercedes Benz|GLE|PHEV Plug-in":[498888,498888],"Mercedes Benz|S-Class|PHEV Plug-in":[738888,738888],"Mini|Aceman|BEV Electric":[213888,233888],"Mini|Clubman|ICE Petrol":[303388,350558],"Mini|Convertible|ICE Petrol":[318888,318888],"Mini|Countryman|BEV Electric":[258888,258888],"Mini|Countryman|ICE Petrol":[260888,389888],"Mitsubishi|Outlander|ICE Petrol":[132109,166720],"Mitsubishi|Triton|Diesel":[101980,159980],"Mitsubishi|Xforce|ICE Petrol":[109980,119980],"Mitsubishi|Xpander|ICE Petrol":[99980,109980],"Nissan|Almera|ICE Petrol":[83888,95888],"Nissan|Kicks|HEV Hybrid":[113800,121800],"Nissan|Navara|Diesel":[98600,154800],"Nissan|Serena|HEV Hybrid":[149888,179800],"Nissan|X-Trail|ICE Petrol":[133888,163888],"O&J|Jaecoo J5|BEV Electric":[118800,118800],"O&J|Jaecoo J5|ICE Petrol":[108000,108000],"O&J|Jaecoo J7|ICE Petrol":[138800,148800],"O&J|Jaecoo J7|PHEV Plug-in":[158800,158800],"O&J|Jaecoo J8|ICE Petrol":[178800,198800],"O&J|Omoda 9|ICE Petrol":[168800,188800],"O&J|Omoda 9|PHEV Plug-in":[208800,208800],"Perodua|Alza|ICE Petrol":[62500,75500],"Perodua|Aruz|ICE Petrol":[68900,73900],"Perodua|Ativa|ICE Petrol":[62500,72600],"Perodua|Axia|ICE Petrol":[33900,49000],"Perodua|Bezza|ICE Petrol":[34580,49980],"Perodua|Myvi|ICE Petrol":[46500,59900],"Perodua|QV-E|BEV Electric":[69999,93999],"Perodua|Traz|ICE Petrol":[76100,81100],"Peugeot|2008|ICE Petrol":[134103,134103],"Peugeot|3008|ICE Petrol":[169388,169388],"Peugeot|408|ICE Petrol":[146055,196055],"Peugeot|5008|ICE Petrol":[186288,186288],"Peugeot|Landtrek|Diesel":[120072,120072],"Porsche|Cayenne|BEV Electric":[699000,999999],"Porsche|Cayenne|ICE Petrol":[609000,609000],"Porsche|Cayenne|PHEV Plug-in":[739000,739000],"Porsche|Macan|BEV Electric":[575000,845000],"Porsche|Panamera|ICE Petrol":[1300000,1300000],"Proton|Exora|ICE Petrol":[59800,59800],"Proton|Iriz|ICE Petrol":[42800,47100],"Proton|Persona|ICE Petrol":[47800,50100],"Proton|S70|ICE Petrol":[59800,94800],"Proton|Saga|ICE Petrol":[38990,49990],"Proton|X50|ICE Petrol":[89800,113300],"Proton|X70|ICE Petrol":[106800,119800],"Proton|X90|ICE Petrol":[106800,122800],"Proton|e.MAS 5|BEV Electric":[59800,72800],"Proton|e.MAS 7|BEV Electric":[103800,125800],"Proton|e.MAS 7|PHEV Plug-in":[109800,129800],"Renault|Koleos|ICE Petrol":[191888,218688],"Subaru|BRZ|ICE Petrol":[249245,259245],"Subaru|Forester|ICE Petrol":[222689,222689],"Suzuki|Jimny|ICE Petrol":[158900,173900],"Suzuki|Swift|ICE Petrol":[58227,73688],"TQ Wuling|Bingo|BEV Electric":[67800,72800],"Tesla|Model 3|BEV Electric":[149000,232000],"Tesla|Model Y|BEV Electric":[198000,263000],"Toyota|86|ICE Petrol":[257502,264309],"Toyota|Alphard|ICE Petrol":[548000,548000],"Toyota|Avanza|ICE Petrol":[80888,83888],"Toyota|C-HR|ICE Petrol":[150000,150000],"Toyota|Camry|HEV Hybrid":[248800,248800],"Toyota|Camry|ICE Petrol":[221800,221800],"Toyota|Corolla Cross|HEV Hybrid":[140800,148800],"Toyota|Corolla Cross|ICE Petrol":[133800,133800],"Toyota|Corolla|ICE Petrol":[144800,149800],"Toyota|Fortuner|Diesel":[195880,241880],"Toyota|Fortuner|ICE Petrol":[202880,202880],"Toyota|GR86|ICE Petrol":[296000,306000],"Toyota|Harrier|HEV Hybrid":[289000,289000],"Toyota|Hiace|Diesel":[127800,169000],"Toyota|Hilux|BEV Electric":[226300,226300],"Toyota|Hilux|Diesel":[117880,173280],"Toyota|Innova Zenix|HEV Hybrid":[202000,202000],"Toyota|Innova Zenix|ICE Petrol":[165000,165000],"Toyota|Innova|ICE Petrol":[121483,129677],"Toyota|Rush|ICE Petrol":[93000,93000],"Toyota|Vellfire|HEV Hybrid":[549900,549900],"Toyota|Vellfire|ICE Petrol":[448000,448000],"Toyota|Veloz|ICE Petrol":[95000,95000],"Toyota|Vios|HEV Hybrid":[103900,109900],"Toyota|Vios|ICE Petrol":[90600,96600],"Toyota|Yaris Cross|HEV Hybrid":[109900,109900],"Toyota|Yaris Cross|ICE Petrol":[99900,99900],"Toyota|Yaris|ICE Petrol":[88000,91600],"Volkswagen|Arteon|ICE Petrol":[291012,291012],"Volkswagen|Golf|HEV Hybrid":[185990,185990],"Volkswagen|Passat|ICE Petrol":[183680,212939],"Volkswagen|Tayron|HEV Hybrid":[190660,190660],"Volkswagen|Tayron|ICE Petrol":[238574,238574],"Volkswagen|Tiguan|ICE Petrol":[139888,162678],"Volvo|EC40|BEV Electric":[248888,288888],"Volvo|EX30|BEV Electric":[198888,218888],"Volvo|S60|PHEV Plug-in":[282540,295888],"Volvo|S90|PHEV Plug-in":[339315,370888],"Volvo|V60|PHEV Plug-in":[286910,321888],"Volvo|XC40|BEV Electric":[278888,278888],"Volvo|XC40|HEV Hybrid":[268888,268888],"Volvo|XC60|HEV Hybrid":[328888,328888],"Volvo|XC60|PHEV Plug-in":[362888,362888],"Volvo|XC90|HEV Hybrid":[418888,418888],"Volvo|XC90|PHEV Plug-in":[434888,434888],"Xpeng|G6|BEV Electric":[159948,190708],"Xpeng|X9|BEV Electric":[281073,335573],"Zeekr|7X|BEV Electric":[182800,235000],"Zeekr|X|BEV Electric":[158800,175800],"iCAUR|iCaur 03|BEV Electric":[119740,129800],"iCAUR|iCaur V23|BEV Electric":[132780,132780]};
+const FUEL_SHORT = {'ICE Petrol':'ICE', 'HEV Hybrid':'HEV', 'BEV Electric':'BEV', 'PHEV Plug-in':'PHEV', 'Diesel':'Diesel'};
+const fuelShort = f => FUEL_SHORT[f] || f;
+function mfpOf(mkName, modelName, fuelName){
+  if (!mkName || !modelName || !fuelName) return null;
+  const v = MFP[mkName + '|' + modelName + '|' + fuelName];
+  return (v && v[0]) ? v : null;
+}
+/*V384 表格价格单元：拆分行优先取动力档价，缺失退回车系区间并标 * */
+function priceCell(r, isModelTab){
+  if (!isModelTab) return '';
+  let p = null, star = false;
+  if (r && r.fullFuel) {
+    p = mfpOf(r.mkName, r.modelName, r.fullFuel);
+    if (!p) {
+      const mdi = DICT.model.indexOf(r.modelName);
+      p = (mdi >= 0) ? MODEL_PRICE[mdi] : null;
+      star = !!p;
+    }
+  } else if (r) {
+    const mdi = DICT.model.indexOf(r.name);
+    p = (mdi >= 0) ? MODEL_PRICE[mdi] : null;
+  }
+  const txt = p ? priceStr(p) + (star ? `<span class="mfp-star" title="${T('md.mfpStar')}">*</span>` : '') : '～';
+  return `<td class="hz2">${txt}</td>`;
+}
 // priceSel: array of selected price-range indices (empty = 全部); a model matches if its [min,max] overlaps ANY selected range
 function priceMatches(mdi, priceSel) {
   if (!priceSel || priceSel.length === 0) return true;
@@ -7536,7 +7572,7 @@ function renderSuvBubble(){
 
 // ---------- generalized analysis (maker / model / fuel), cube-based with cross-filters ----------
 // filt: {maker, type, fuel, colour, country} — arrays of dict indices, empty = 全部; price — array of range indices, empty = 全部
-function buildRanking(cat, ymA, ymB, filt) {
+function buildRanking(cat, ymA, ymB, filt, splitFuel) {
   filt = filt || {};
   // 两段式：基准期 ymA（前期/同比基准）、对比期 ymB（本期）
   const A1=ymA[0], A2=ymA[1];
@@ -7562,6 +7598,17 @@ function buildRanking(cat, ymA, ymB, filt) {
     if (cat === 'model') return DICT.model[a];
     return useMD ? DICT.maker[MODEL_MAKER[a]] : DICT.maker[a];
   };
+  /*V384 拆分模式（splitFuel）：行键 = 车型索引|动力索引，显示名 'J5 · ICE'。
+     非拆分时 key 就是 name，行为与 V383 完全一致。*/
+  const SPLIT = !!splitFuel && cat === 'model';
+  const keyOf = (a, c) => SPLIT ? (a + '|' + c) : getName(a, c);
+  const rowMeta = k => {
+    if (!SPLIT) return {key: k, name: k};
+    const ai = +k.split('|')[0], ci = +k.split('|')[1];
+    const mn = DICT.model[ai], ff = DICT.fuel[ci];
+    return {key: k, name: mn + ' · ' + fuelShort(ff), modelName: mn, fullFuel: ff,
+            mkName: DICT.maker[MODEL_MAKER[ai]]};
+  };
   const makerI = a => useMD ? MODEL_MAKER[a] : a;
   const countryOk = a => inSel(fCy, MCTR[makerI(a)]);
   const ymIdx = new Map(yms.map((ym,i)=>[ym,i]));
@@ -7583,7 +7630,7 @@ function buildRanking(cat, ymA, ymB, filt) {
     if (!inSel(fTy, b)) continue;
     if (!inSel(fFu, c)) continue;
     if (!inSel(fCo, d)) continue;
-    const name = getName(a, c);
+    const name = keyOf(a, c);
     if (ym>=A1 && ym<=A2) add(aPrev,name,v);      // 基准期
     if (ym>=B1 && ym<=B2) add(aCur,name,v);       // 对比期
     const i = ymIdx.get(ym);
@@ -7599,13 +7646,14 @@ function buildRanking(cat, ymA, ymB, filt) {
   }
   const totalPrev = [...aPrev.values()].reduce((a,b)=>a+b,0);
   const totalCur = [...aCur.values()].reduce((a,b)=>a+b,0);
-  const rows = [...acc.entries()].map(([name,v])=>{
-    const p=aPrev.get(name)||0, c=aCur.get(name)||0;
-    return {name, total:v, prev:p, cur:c,
+  const rows = [...acc.entries()].map(([key,v])=>{
+    const meta = rowMeta(key), name = meta.name;
+    const p=aPrev.get(key)||0, c=aCur.get(key)||0;
+    return {name, total:v, prev:p, cur:c, ...meta,
       prevShare: totalPrev>0 ? p/totalPrev : 0,
       curShare: totalCur>0 ? c/totalCur : 0,
       yoy: p>0 ? (c-p)/p : (c>0?Infinity:null),
-      monthly: monthly.get(name)};
+      monthly: monthly.get(key)};
   }).sort((a,b)=>b.cur-a.cur || b.prev-a.prev)
     .filter(r=>r.cur>0);   // 今年累计销量=0 的行不显示
 
@@ -7626,14 +7674,14 @@ function buildRanking(cat, ymA, ymB, filt) {
     if (!inSel(fTy, b)) continue;
     if (!inSel(fFu, c)) continue;
     if (!inSel(fCo, d)) continue;
-    const name = getName(a, c);
+    const name = keyOf(a, c);
     add(yy === sysY ? sysCurAcc : sysPrevAcc, name, v);
   }
   const rankMapOf = accm => { const m = new Map(); [...accm.entries()].sort((x,z)=>z[1]-x[1]).forEach(([k],i)=>m.set(k,i+1)); return m; };
   const sysCurRank = rankMapOf(sysCurAcc), sysPrevRank = rankMapOf(sysPrevAcc);
   for (const r of rows) {
-    r.sysCurRank = sysCurRank.get(r.name) || null;
-    r.sysPrevRank = sysPrevRank.get(r.name) || null;
+    r.sysCurRank = sysCurRank.get(r.key || r.name) || null;
+    r.sysPrevRank = sysPrevRank.get(r.key || r.name) || null;
     // 月度环比（对比期最新月 vs 其上一月）与月度同比（对比期最新月 vs 基准期最新月）
     const latest = r.monthly[yms.length-1];
     const pm = needPrevMon ? (prevMon.get(r.name) || 0) : r.monthly[ymIdx.get(prevYm)];
@@ -7683,24 +7731,20 @@ function pinThead(elId){
 function repinTheads(){ document.querySelectorAll('table[id]').forEach(t => pinThead(t.id)); }
 
 // extra: optional {header, get(r)} column inserted right after the name column (e.g. 在售车型数)
-function renderRankTable(elId, rank, rows, label, extra) {
+function renderRankTable(elId, rank, rows, label, extra, opts) {
   // label 可能是字符串或 {zh,en} 对象 — 解析为当前语言字符串
   if (label && typeof label === 'object') label = label[LANG] || label.zh;
   const pHdr = rank.pA || mRangeStr(rank.y-1, rank.mFrom, rank.mTo), cHdr = rank.pB || mRangeStr(rank.y, rank.mFrom, rank.mTo);
   const n = rank.n;
   const monTh = rank.labels.map(l=>`<th>${l}</th>`).join('');
-  const isModelTab = (label === '车型（Model）' || label === 'Model');
+  const isModelTab = !!(opts && opts.split) || (label === '车型（Model）' || label === 'Model');
   const body = rows.map((r,i)=>{
     const monTd = r.monthly.map(v=>`<td>${v?fmt(v):'-'}</td>`).join('');
-    let priceCell = '';
-    if (isModelTab) {
-      const mdi = DICT.model.indexOf(r.name);
-      priceCell = `<td class="hz2">${mdi >= 0 && MODEL_PRICE[mdi] ? priceStr(MODEL_PRICE[mdi]) : '～'}</td>`;
-    }
+    const pCell = priceCell(r, isModelTab);   /*V384 拆分行按动力档取价*/
     return `<tr>
-    <td${isModelTab ? ' class="hz0"' : ''}><span class="badge ${i<3?'top':''}">${i+1}</span></td>
+    <td${isModelTab ? ' class="hz0"' : ''}><span class="badge ${(r.seqRank || i+1) <= 3 ? 'top' : ''}">${r.seq || (i+1)}</span></td>
     <td${isModelTab ? ' class="hz1"' : ' class="sticky"'}>${r.name}${label==='Maker' ? logoImg(r.name) : ''}</td>
-    ${priceCell}
+    ${pCell}
     ${extra ? `<td>${fmt(extra.get(r))}</td>` : ''}
     ${monTd}
     <td style="border-left:2px solid var(--line)">${chgCell(r.mom)}</td>
@@ -7724,7 +7768,7 @@ function renderRankTable(elId, rank, rows, label, extra) {
       r.monthly.forEach((v,i)=>TT.monthly[i]+=v);
     }
     const L = rank.labels.length;
-    const tMomBase = (rank.n >= 2) ? TT.monthly[L-2] : rows.reduce((a,r)=>a+(rank.prevMon.get(r.name)||0),0);
+    const tMomBase = (rank.n >= 2) ? TT.monthly[L-2] : rows.reduce((a,r)=>a+(rank.prevMon.get(r.key || r.name)||0),0);
     const tMom = chgOf(TT.monthly[L-1], tMomBase);
     const tMyoy = chgOf(TT.monthly[L-1], TT.monthly[rank.nA-1]);
     const monTdT = TT.monthly.map(v=>`<td>${v?fmt(v):'-'}</td>`).join('');
@@ -8188,6 +8232,46 @@ function countModelsPerMaker(ymB1, ymB2, filt){
 }
 
 // 按 线图勾选的厂家/车型 同步右侧市场份额+深度图（V75：保证深度图与走势图筛选一致）
+/*V384 车型 × 动力拆分视图：只用于表格与导出，不改变 t.rank（合并口径）。
+   规则：只在合并口径 TopN（含厂家筛选）内展开；同车型相邻；
+        组序 = 该组最强动力档销量（即「按拆分后销量」排名）；
+        组内按动力销量降序；序号 1a/1b、2、3a… */
+let MDSPLIT = (function(){ try { return localStorage.getItem('mdSplit') === '1'; } catch(_) { return false; } })();
+function buildMdSplit(limit){
+  const t = TABS.md;
+  if (!t.rank) return null;
+  const [ymA, ymB] = readYmPair('md');
+  const sr = buildRanking('model', ymA, ymB, t.filt || {}, true);
+  const topn = (limit === undefined || limit === null) ? (+document.getElementById('md-topn').value) : limit;
+  const keep = new Set(t.filtered.slice(0, topn).map(r => r.name));
+  const groups = new Map();
+  for (const r of sr.rows) {
+    if (!keep.has(r.modelName)) continue;
+    if (!groups.has(r.modelName)) groups.set(r.modelName, []);
+    groups.get(r.modelName).push(r);
+  }
+  const out = [];
+  const list = [...groups.entries()].sort((a, b) =>
+    Math.max(...b[1].map(r => r.cur)) - Math.max(...a[1].map(r => r.cur)));
+  list.forEach(([, rs], gi) => {
+    rs.sort((a, b) => b.cur - a.cur || b.prev - a.prev);
+    rs.forEach((r, k) => {
+      r.seq = String(gi + 1) + (rs.length > 1 ? ('abcdefgh'[k] || String(k + 1)) : '');
+      r.seqRank = gi + 1;
+      out.push(r);
+    });
+  });
+  sr.rows = out;
+  return sr;
+}
+function setMdSplit(on){
+  MDSPLIT = !!on;
+  const _sw = document.querySelector('#panel-model .split-chk');   /*V387 旧浏览器兜底*/
+  if (_sw) _sw.classList.toggle('on', MDSPLIT);
+  try { localStorage.setItem('mdSplit', MDSPLIT ? '1' : '0'); } catch(_) {}
+  /*V385 副标题（md-sub）由 renderAnalysis 写入，只调 applyModelFilter 会让拆分提示滞后一轮*/
+  if (typeof renderAnalysis === 'function') renderAnalysis('md'); else applyModelFilter();
+}
 function renderAnalysisSync(prefix){
   const t = TABS[prefix];
   const parents = (t.selected && t.selected.length) ? t.selected.slice(0,8) : t.filtered.slice(0,8).map(r=>r.name);
@@ -8205,14 +8289,12 @@ function renderAnalysis(prefix){
   filt.price = priceSlicerVals(prefix+'-price');
   t.filt = filt;
   t.rank = buildRanking(t.cat, ymA, ymB, filt);
-  const active = t.dims.filter(d=>filt[d].length).map(d=>`${DIM_LABEL[d]}=${filt[d].map(i=>DICT[d][i]).join('、')}`).join(' · ');
-  const priceActive = filt.price.length ? `${LANG==='en'?'Price':'价格'}=${filt.price.map(i=>PRICE_LABELS[i]).join('、')}` : '';
   const lblA = formatYm(ymA[0],ymA[1]), lblB = formatYm(ymB[0],ymB[1]);
-  document.getElementById(prefix+'-hint').textContent =
-    `${T('hint.cur')}：${lblB} · ${T('hint.prev')}：${lblA}` + (active ? ` · ${T('hint.filter')}：${active}` : '') + (priceActive ? ` · ${priceActive}` : '');
+  /*V387 筛选行末尾的「本期/对比/筛选」摘要已按用户要求移除：期间与排名口径见副标题，
+    筛选当前值由各下拉自身显示（国别「中国」等），不再重复。*/
   document.getElementById(prefix+'-sub').textContent = (LANG === 'en'
     ? `(${lblA} – ${lblB}, ranked by period sales; rank columns are system-time ${t.rank.sysPrevY}/${t.rank.sysY} YTD (Jan–${MONTH_EN[t.rank.sysM-1]}) ranks)`
-    : `（${lblA} - ${lblB}，按本期销量排名；排名列为系统时间 ${t.rank.sysPrevY}/${t.rank.sysY} 年 1-${t.rank.sysM} 月累计排名）`) + (prefix === 'mk' ? ' · Top 50' : '');
+    : `（${lblA} - ${lblB}，按本期销量排名；排名列为系统时间 ${t.rank.sysPrevY}/${t.rank.sysY} 年 1-${t.rank.sysM} 月累计排名）`) + (prefix === 'mk' ? ' · Top 50' : '') + (prefix === 'md' && MDSPLIT ? T('md.splitNote') : '');
 
   if (prefix === 'md') {
     applyModelFilter();
@@ -8298,7 +8380,13 @@ function applyModelFilter(){
   } else {
     t.filtered = t.rank.rows;
   }
-  renderRankTable('t-md-rank', t.rank, t.filtered.slice(0, topn), t.label);
+  /*V384 拆分：只有表格与导出换数据源，勾选列表/折线图/份额图仍走合并口径 t.filtered*/
+  let vRank = t.rank, vRows = t.filtered.slice(0, topn), vOpts = null;
+  if (MDSPLIT) {
+    const sr = buildMdSplit(topn);
+    if (sr && sr.rows.length) { vRank = sr; vRows = sr.rows; vOpts = {split: true}; }
+  }
+  renderRankTable('t-md-rank', vRank, vRows, t.label, null, vOpts);
   buildSelectors('md');
   renderAnalysisSync('md');
 }
@@ -8306,6 +8394,12 @@ function applyModelFilter(){
 function buildModelMakerFilter(){
   initDimSlicer('md-maker-filter', 'maker', x=>x, ()=>analysisOnChange('md'));
   document.getElementById('md-topn').onchange = applyModelFilter;
+  const _sc = document.getElementById('md-split');   /*V384 拆分开关（幂等绑定）*/
+  if (_sc) {
+    _sc.checked = MDSPLIT; _sc.onchange = () => setMdSplit(_sc.checked);
+    const _sw = _sc.closest('.split-chk');   /*V387 初始态同步*/
+    if (_sw) _sw.classList.toggle('on', MDSPLIT);
+  }
 }
 
 // mount the extra cross-filter slicers for one analysis tab (options ordered by sales desc)
@@ -8502,36 +8596,82 @@ function renderShareTable(){
   }
 }
 
-// ---------- Excel export for analysis tabs ----------
+// ---------- Excel export for analysis tabs ---------- V384
 function exportAnalysis(prefix){
   const t = TABS[prefix];
   if (!t.rank) return;
+  const EN = LANG === 'en';
+  const L = (zh, en) => EN ? en : zh;
   const {y, n, mFrom, mTo} = t.rank;
-  const pHdr = `${mRangeStr(y-1, mFrom, mTo)}汇总`, cHdr = `${mRangeStr(y, mFrom, mTo)}累计`;
-  const name = t.label.replace(/[（）]/g,'');
-  const rows = t.filtered;
-
-  const aoa = [['排名', name,
-    ...(t.modelCounts ? ['在售车型数'] : []),
-    ...t.rank.labels, '月度环比%', '月度同比%', pHdr, `${y-1}年份额%`, cHdr, `${y}年累计份额%`, '同比变化%',
-    '今年销量排名', '去年销量排名', '排名变化']];
-  const fmtChg = v => v===Infinity ? '新增' : (v===null || v===undefined) ? '-' : +(v*100).toFixed(1);
-  rows.forEach((r,i)=>{
-    const rkChg = (r.sysPrevRank===null && r.sysCurRank===null) ? '-'
-      : r.sysPrevRank===null ? '新上榜'
-      : r.sysCurRank===null ? '出榜'
-      : r.sysPrevRank - r.sysCurRank;
-    aoa.push([i+1, r.name,
-      ...(t.modelCounts ? [t.modelCounts.get(r.name)||0] : []),
-      ...r.monthly, fmtChg(r.mom), fmtChg(r.myoy),
-      r.prev, +(r.prevShare*100).toFixed(2), r.cur, +(r.curShare*100).toFixed(2),
-      r.yoy===Infinity ? '新增' : r.yoy===null ? '-' : +(r.yoy*100).toFixed(1),
-      r.sysCurRank ?? '-', r.sysPrevRank ?? '-', rkChg]);
-  });
-
+  const pHdr = `${mRangeStr(y-1, mFrom, mTo)}${L('汇总',' Total')}`;
+  const cHdr = `${mRangeStr(y, mFrom, mTo)}${L('累计',' YTD')}`;
+  /*V384 修复：md 的 label 是 {zh,en} 对象，旧代码直接 .replace() → TypeError，导出整体中止*/
+  const raw = t.label;
+  const label = (raw && typeof raw === 'object') ? (raw[LANG] || raw.zh) : raw;
+  const fileLabel = t.fileLabel || label;
+  const priceHdr = L('价格(RM)', 'MSRP (RM)');
+  const isMd = prefix === 'md';
+  const mdiOf = name => DICT.model.indexOf(name);
+  const priceOf = r => {
+    if (!isMd) return null;
+    let p = null, star = false;
+    if (r.fullFuel) {
+      p = mfpOf(r.mkName, r.modelName, r.fullFuel);
+      if (!p) { const i = mdiOf(r.modelName); p = i >= 0 ? MODEL_PRICE[i] : null; star = !!p; }
+    } else {
+      const i = mdiOf(r.name); p = i >= 0 ? MODEL_PRICE[i] : null;
+    }
+    return p ? {p, star} : null;
+  };
+  const priceTxt = o => {
+    if (!o) return '-';
+    const q = o.p, s = o.star ? '*' : '';
+    return (q[0] === q[1] ? fmt(q[0]) : `${fmt(q[0])}–${fmt(q[1])}`) + s;
+  };
+  const fmtChg = v => v===Infinity ? L('新增','New') : (v===null || v===undefined) ? '-' : +(v*100).toFixed(1);
+  /*V386 序号列类型归一：'7' → 7（可排序），'7a' 保留字符串*/
+  const seqOut = r => {
+    const sv = (r && r.seq !== undefined && r.seq !== null) ? String(r.seq) : '';
+    return /^\d+$/.test(sv) ? Number(sv) : sv;
+  };
+  const rkChgOf = r => (r.sysPrevRank===null && r.sysCurRank===null) ? '-'
+    : r.sysPrevRank===null ? L('新上榜','New')
+    : r.sysCurRank===null ? L('出榜','Out')
+    : r.sysPrevRank - r.sysCurRank;
+  const tail = (r, lead) => [...lead,
+    ...r.monthly, fmtChg(r.mom), fmtChg(r.myoy),
+    r.prev, +(r.prevShare*100).toFixed(2), r.cur, +(r.curShare*100).toFixed(2),
+    r.yoy===Infinity ? L('新增','New') : r.yoy===null ? '-' : +(r.yoy*100).toFixed(1),
+    r.sysCurRank ?? '-', r.sysPrevRank ?? '-', rkChgOf(r)];
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), '销量排名');
-  XLSX.writeFile(wb, `马来西亚乘用车_分${t.fileLabel}_${y-1}-${y}年_${mFrom===mTo?mTo+'月':'1-'+mTo+'月'}.xlsx`);
+
+  // Sheet 1：合并口径（与表格 TopN 无关，导出全部筛选结果）
+  const aoa = [[L('排名','#'), label,
+    ...(isMd ? [priceHdr] : []),
+    ...(t.modelCounts ? [L('在售车型数','Models')] : []),
+    ...t.rank.labels, L('月度环比%','MoM %'), L('月度同比%','YoY %'), pHdr,
+    L(`${y-1}年份额%`, `${y-1} share %`), cHdr, L(`${y}年累计份额%`, `${y} YTD share %`), L('同比变化%','Change %'),
+    L('今年销量排名','Rank this year'), L('去年销量排名','Rank last year'), L('排名变化','Rank chg')]];
+  t.filtered.forEach((r,i)=>aoa.push(tail(r, [seqOut(r) || (i+1), r.name,
+    ...(isMd ? [priceTxt(priceOf(r))] : []),
+    ...(t.modelCounts ? [t.modelCounts.get(r.name)||0] : [])])));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), L('销量排名','Ranking'));
+
+  // Sheet 2：车型 × 动力（V384；不受拆分开关影响，恒输出全量拆分口径）
+  if (isMd) {
+    const sr = buildMdSplit(99999);
+    if (sr && sr.rows.length) {
+      const a2 = [[L('序号','#'), L('车型','Model'), L('动力','Fuel'), priceHdr,
+        ...t.rank.labels, L('月度环比%','MoM %'), L('月度同比%','YoY %'), pHdr,
+        L(`${y-1}年份额%`, `${y-1} share %`), cHdr, L(`${y}年累计份额%`, `${y} YTD share %`), L('同比变化%','Change %'),
+        L('今年销量排名','Rank this year'), L('去年销量排名','Rank last year'), L('排名变化','Rank chg')]];
+      sr.rows.forEach((r,i)=>a2.push(tail(r, [seqOut(r), r.modelName, fuelShort(r.fullFuel),
+        priceTxt(priceOf(r))])));
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(a2), L('车型×动力','Model × Fuel'));
+    }
+  }
+
+  XLSX.writeFile(wb, `马来西亚乘用车_分${fileLabel}_${y-1}-${y}年_${mFrom===mTo?mTo+'月':'1-'+mTo+'月'}.xlsx`);
 }
 
 // ---------- 勾选列表搜索辅助（防抖） ----------
